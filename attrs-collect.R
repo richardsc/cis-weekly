@@ -17,7 +17,6 @@ read_gpkg_extent <- function(x, pb) {
   list_of_bbox <- vapour_read_extent(x)
   tibble(
     # each element is c(xmin, xmax, ymin, ymax)
-    feat_id = seq_along(list_of_bbox),
     feat_xmin = map_dbl(list_of_bbox, `[[`, 1),
     feat_ymin = map_dbl(list_of_bbox, `[[`, 3),
     feat_xmax = map_dbl(list_of_bbox, `[[`, 2),
