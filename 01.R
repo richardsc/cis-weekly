@@ -1,0 +1,98 @@
+
+library(tidyverse)
+
+# github file limit
+max_zip_size <- 90 * 1024 * 1024
+
+zip_files <- tibble(
+  file = list.files("zip", ".zip$", full.names = TRUE),
+  size = file.size(file),
+  is_too_big = size > max_zip_size
+)
+
+split_big_zip <- function(zip_file) {
+  target_groups <- file.size(zip_file) %/% max_zip_size + 1
+  if (target_groups == 1) return()
+  message(glue::glue("Splitting { zip_file } into { target_groups }"))
+
+  tmp_extract <- tempfile()
+  unzip(zip_file, exdir = tmp_extract)
+  extract_files <- tibble(
+    file = list.files(tmp_extract),
+    size = file.size(file.path(tmp_extract, file)),
+    cum_size = cumsum(size),
+    group = 1
+  )
+
+  target_size <- sum(extract_files$size) %/% target_groups
+
+
+  while(any(extract_files$cum_size > target_size)) {
+    extract_files <- extract_files %>%
+      mutate(
+        group = if_else(
+          cum_size > target_size,
+          max(group) + 1,
+          group
+        )
+      ) %>%
+      group_by(group) %>%
+      mutate(cum_size = cumsum(size)) %>%
+      ungroup()
+  }
+
+  extract_files %>%
+    mutate(
+      zipfile = zip_file %>%
+        str_replace("\\.zip$", paste0(letters[group], ".zip")) %>%
+        fs::path_abs()
+    ) %>%
+    group_by(zipfile) %>%
+    group_walk(~{
+      withr::with_dir(tmp_extract, zip(.y$zipfile, .x$file))
+    })
+}
+
+processed_files <- zip_files %>%
+  filter(is_too_big) %>%
+  pull(file) %>%
+  walk(split_big_zip)
+
+message("Check that files were created properly then run:")
+for (file in processed_files) {
+  message(glue::glue("unlink('{ file }')"))
+}
+
+# also list zip files and get meta, writing to zip/meta.csv
+zip_meta <- tibble(
+  zip_file = list.files("zip", ".zip$", full.names = TRUE),
+  meta = map(zip_file, unzip, list = TRUE)
+) %>%
+  unnest(meta) %>%
+  select(-Date) %>%
+  rename(file = Name, size = Length) %>%
+  # also add some information about each layer from the filename
+  extract(
+    file,
+    c("region_code", "date", "region"),
+    "_([a-z][0-9]{2})_([0-9]{8}).*?([A-Za-z]{2})\\.",
+    remove = FALSE
+  ) %>%
+  mutate(
+    date = if_else(
+      tools::file_ext(file) == "e00",
+      suppressWarnings(lubridate::ymd(date)),
+      as.Date(NA)
+    ),
+    region = if_else(
+      region == "XX",
+      unname(c(a09 = "HB", a10 = "WA", a11 = "EA", a12 = "EC")[region_code]),
+      toupper(region)
+    ),
+    aoi_number = str_extract(region_code, "[0-9]+"),
+    url = glue::glue("https://ice-glaces.ec.gc.ca/www_archive/AOI_{ aoi_number }/Coverages/{ file }")
+  ) %>%
+  select(-aoi_number) %>%
+  select(region, date, everything()) %>%
+  arrange(region, date) %>%
+  write_csv("zip/meta.csv")

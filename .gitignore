@@ -2,3 +2,5 @@
 .Rhistory
 .RData
 .Ruserdata
+temp-exdir
+zip/*.zip
