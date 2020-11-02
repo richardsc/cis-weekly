@@ -50,7 +50,7 @@ for (i in seq_len(nrow(files_e00))) {
   )
 
   tryCatch({
-    layer <- e00_read_sf(files_e00$file_real, layer = "PAL")
+    layer <- e00_read_sf(files_e00$file_real[i], layer = "PAL")
 
     # drop the ArcIds column (is dropped anyway on write)
     if ("ArcIds" %in% names(layer)) {
