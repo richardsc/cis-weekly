@@ -11,14 +11,14 @@ knitr::opts_chunk$set(echo = TRUE, dpi = 300, fig.path = "README_")
 
 This repo describes a pipeline for turning .zip files downloaded from the [CIS search tool](https://iceweb1.cis.ec.gc.ca/Archive/page1.xhtml) into usable data products that can be queried and loaded efficiently in R. Roughly,
 
-- Add .zip files to zip/
+- Add .zip files downloaded from the search tool to zip/
 - Run zip-collect.R
 - Run gpkg-collect.R
 - Run attrs-collect.R
 
-Both zip-collect.R and gpkg-collect.R are sufficiently lazy such that they do not decompress/load anything that has already been converted. The result is a folder gpkg/ that contains easy-to-read (i.e., `sf::read_sf()`) .gpkg files and a highly queryable attribute table (read using `arrow::read_parquet()`).
+Both zip-collect.R and gpkg-collect.R are sufficiently lazy such that they do not decompress/load anything that has already been converted to a gpkg. The result is a folder gpkg/ that contains easy-to-read (i.e., `sf::read_sf()`) .gpkg files and a highly queryable attribute table (read using `arrow::read_parquet()`).
 
-Alternatively, you can use the provided attrs.parquet and/or zip/meta.csv to download a subset of the data (urls for each data source are provided).
+All of the geometry files are .gitignored because they don't fit on GitHub, but you can use the provided attrs.parquet and/or gpkg/meta.csv and/or zip/meta.csv to download a subset of the data (urls for each data source are provided in zip/meta.csv).
 
 ```{r}
 library(tidyverse)

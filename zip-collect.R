@@ -70,7 +70,7 @@ zip_meta <- tibble(
 ) %>%
   unnest(meta) %>%
   select(-Date) %>%
-  rename(file = Name, size = Length) %>%
+  rename(file = Name, file_size = Length) %>%
   # also add some information about each layer from the filename
   extract(
     file,
@@ -79,6 +79,7 @@ zip_meta <- tibble(
     remove = FALSE
   ) %>%
   mutate(
+    file = file.path("file", file),
     date = lubridate::ymd(date),
     region = if_else(
       region == "XX",
@@ -86,13 +87,13 @@ zip_meta <- tibble(
       toupper(region)
     ),
     # future vector file
-    gpkg = glue::glue("{ region }_{ date }.gpkg"),
+    gpkg = glue::glue("gpkg/{ region }_{ date }.gpkg"),
     # helpful to have the shapefile name, which can be calculated
     # from the
     dsn = if_else(
       tools::file_ext(file) == "zip",
       sprintf(
-        "%02d%02d%04d_CEXPR%s.shp",
+        "file/%02d%02d%04d_CEXPR%s.shp",
         lubridate::day(date),
         lubridate::month(date),
         lubridate::year(date),
@@ -101,7 +102,7 @@ zip_meta <- tibble(
       file
     ),
     aoi_number = str_extract(region_code, "[0-9]+"),
-    url = glue::glue("https://ice-glaces.ec.gc.ca/www_archive/AOI_{ aoi_number }/Coverages/{ file }")
+    url = glue::glue("https://ice-glaces.ec.gc.ca/www_archive/AOI_{ aoi_number }/Coverages/{ basename(file) }")
   ) %>%
   select(-aoi_number) %>%
   select(region, date, region_code, everything()) %>%

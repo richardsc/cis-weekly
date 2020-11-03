@@ -2,28 +2,29 @@
 library(tidyverse)
 library(sf)
 library(arce00) # remotes::install_github("paleolimbot/arce00")
+library(vapour)
 
 study_crs <- st_crs("ESRI:102002")
 zip_meta <- read_csv("zip/meta.csv")
 
-# extract .zip files from the search tool into temp-exdir
+# extract .zip files from the search tool into file
 # only if there isn't a corresponding .gpkg and the file
 # hasn't been previously extracted
-exdir <- "temp-exdir"
+exdir <- "file"
 if (!dir.exists(exdir)) dir.create(exdir)
 
 existing_files <- list.files(exdir)
 
 zip_meta %>%
   filter(
-    !file.exists(file.path(exdir, file)),
-    !file.exists(file.path("gpkg", gpkg))
+    !file.exists(file),
+    !file.exists(gpkg)
   )  %>%
   group_by(zip_file) %>%
   group_walk(~{
     if (nrow(.x) == 0) return()
     message(glue::glue("Extracting { length(.x$file) } files from { .y$zip_file }"))
-    unzip(.y$zip_file, .x$file, exdir = exdir)
+    unzip(.y$zip_file, basename(.x$file), exdir = exdir)
   })
 
 # .zip files get extracted to .shp files
@@ -31,10 +32,9 @@ zip_meta %>%
 zip_meta %>%
   filter(
     tools::file_ext(file) == "zip",
-    !file.exists(file.path(exdir, dsn)),
-    !file.exists(file.path("gpkg", gpkg))
+    !file.exists(dsn),
+    !file.exists(gpkg)
   ) %>%
-  mutate(file = file.path(exdir, file)) %>%
   pull(file) %>%
   walk(unzip, exdir = exdir)
 
@@ -48,7 +48,7 @@ files_e00 <- tibble(
   file = basename(file_real)
 ) %>%
   # less reliable, but allows dropping of missing .e00 files
-  # into temp-exdir
+  # into file
   extract(file, "date_fn", "([0-9]{8})", remove = F) %>%
   extract(file, "region_fn", "([A-Z]{2})\\.e00", remove = F) %>%
   left_join(zip_meta, by = "file") %>%
@@ -88,7 +88,7 @@ files_shp <- tibble(
   dsn = basename(file_real)
 ) %>%
   # less reliable, but allows downloading missing .zip files
-  # into temp-exdir
+  # into file
   extract(dsn, "date_fn", "([0-9]{8})", remove = F) %>%
   extract(dsn, "region_fn", "([A-Z]{2})\\.shp", remove = F) %>%
   left_join(zip_meta, by = "dsn") %>%
