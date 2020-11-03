@@ -124,12 +124,21 @@ arrow::read_parquet("attrs.parquet")
 
 ## Dataset details
 
-A documentation of the vector file format (i.e., .gpkg files in gpkg/)
-can be found
-[here](https://www.jcomm.info/index.php?option=com_oe&task=viewDocumentRecord&docID=4439).
-The column names are the same for files between 1968 and present, but in
-2020 there was a shift in data formats and only some columns were
-retained.
+A documentation of the SIGRID vector file format (i.e., .gpkg files in
+gpkg/) can be found
+[here](https://www.jcomm.info/index.php?option=com_oe&task=viewDocumentRecord&docID=4439);
+[a guide specific to the Canadian Ice
+Service](https://www.canada.ca/en/environment-climate-change/services/ice-forecasts-observations/latest-conditions/archive-overview/information-about-data.html)
+is also available. See also the [Ice
+glossary](https://www.canada.ca/en/environment-climate-change/services/ice-forecasts-observations/latest-conditions/glossary.html)
+provided by the Canadian Ice Service. The column names are the same for
+files between 1968 and present, but in 2020 there was a shift in data
+formats and only some columns were retained. In 1983 the `R_*` columns
+stopped being used.
+
+The `E_*` columns (probably for “egg”) are present in all ice polygon
+files. These are string codes where the empty string `''` is used both
+for “blank” and “0”.
 
   - `E_CA` (Partial concentration of thickest ice): ’‘, ’1’, ‘2’, ‘3’,
     ‘4’, ‘5’, ‘6’, ‘7’, ‘8’, ‘9’
@@ -148,8 +157,8 @@ retained.
     ‘6’, ‘7’, ‘8’, ‘9’, ‘X’
   - `E_FC` (Form of third thickest ice): ’‘, ’0’, ‘1’, ‘2’, ‘3’, ‘4’,
     ‘5’, ‘6’, ‘7’, ‘8’, ‘X’
-  - `E_FD` (Form of any remaining class of ice): ’’
-  - `E_FE`: ’’
+  - `E_FD` (Form of any remaining class of ice): ’’ (blank everywhere)
+  - `E_FE`: ’’ (blank everywhere)
   - `E_SA` Stage of development of thickest ice): ’‘, ’1’, ‘1.’, ‘3’,
     ‘4’, ‘4.’, ‘5’, ‘6’, ‘7’, ‘7.’, ‘8.’, ‘9.’
   - `E_SB` (Stage of development of second thickest Ice): ’‘, ’1’, ‘1.’,
@@ -158,30 +167,48 @@ retained.
     ‘2’, ‘3’, ‘4’, ‘4.’, ‘5’, ‘7’
   - `E_SD` (Stage of development of any remaining class of ice): ’‘,
     ’1’, ‘4’, ‘4.’, ‘5’, ‘7’
-  - `E_SE`: ’’
-  - `E_SO`: ’‘, ’1.’, ‘4’, ‘4.’, ‘5’, ‘6’, ‘7’, ‘7.’, ‘8.’, ‘9.’
-  - `N_CB`: ’‘,’ 0.2’, ‘10.0’
-  - `N_CFY`: ’‘,’ 0.0’, ’ 0.3’, ’ 1.0’, ’ 1.3’, ’ 2.0’, ’ 2.3’, ’ 3.0’,
-    ’ 3.3’, ’ 4.0’, ’ 4.3’, ’ 5.0’, ’ 5.3’, ’ 6.0’, ’ 6.3’, ’ 7.0’, ’
+  - `E_SE`: ’’ (blank everywhere)
+  - `E_SO` (stage of development of ice found in traces): ’‘, ’1.’, ‘4’,
+    ‘4.’, ‘5’, ‘6’, ‘7’, ‘7.’, ‘8.’, ‘9.’
+
+Numeric values (here ’’ is blank whereas 0.0 is 0):
+
+  - `N_CB` (numeric value for the concentration of icebergs): ’‘,’ 0.2’,
+    ‘10.0’
+  - `N_CFY` (numeric value for the concentration of first year ice):
+    ’‘,’ 0.0’, ’ 0.3’, ’ 1.0’, ’ 1.3’, ’ 2.0’, ’ 2.3’, ’ 3.0’, ’
+    3.3’, ’ 4.0’, ’ 4.3’, ’ 5.0’, ’ 5.3’, ’ 6.0’, ’ 6.3’, ’ 7.0’, ’
     7.3’, ’ 8.0’, ’ 8.3’, ’ 9.0’, ’ 9.3’, ’ 9.7’, ‘10.0’
-  - `N_CG`: ’‘,’ 0.0’, ’ 0.3’, ’ 1.0’, ’ 2.0’, ’ 3.0’, ’ 4.0’, ’ 5.0’, ’
+  - `N_CG` (numeric value for the concentration of grey ice): ’‘,’ 0.0’,
+    ’ 0.3’, ’ 1.0’, ’ 2.0’, ’ 3.0’, ’ 4.0’, ’ 5.0’, ’ 6.0’, ’ 7.0’, ’
+    8.0’, ’ 9.0’, ’ 9.7’, ‘10.0’
+  - `N_CGW` (numeric value for the concentration o grey white ice): ’‘,’
+    0.0’, ’ 0.3’, ’ 1.0’, ’ 2.0’, ’ 3.0’, ’ 4.0’, ’ 5.0’, ’ 6.0’, ’
+    7.0’, ’ 8.0’, ’ 9.0’, ’ 9.7’, ‘10.0’
+  - `N_CMY` (numeric value for the concentration of multi-year ice):
+    ’‘,’ 0.0’, ’ 0.3’, ’ 1.0’, ’ 2.0’, ’ 3.0’, ’ 4.0’, ’ 5.0’, ’
     6.0’, ’ 7.0’, ’ 8.0’, ’ 9.0’, ’ 9.7’, ‘10.0’
-  - `N_CGW`: ’‘,’ 0.0’, ’ 0.3’, ’ 1.0’, ’ 2.0’, ’ 3.0’, ’ 4.0’, ’ 5.0’,
-    ’ 6.0’, ’ 7.0’, ’ 8.0’, ’ 9.0’, ’ 9.7’, ‘10.0’
-  - `N_CMY`: ’‘,’ 0.0’, ’ 0.3’, ’ 1.0’, ’ 2.0’, ’ 3.0’, ’ 4.0’, ’ 5.0’,
-    ’ 6.0’, ’ 7.0’, ’ 8.0’, ’ 9.0’, ’ 9.7’, ‘10.0’
-  - `N_CN`: ’‘,’ 0.0’, ’ 0.3’, ’ 1.0’, ’ 2.0’, ’ 3.0’, ’ 4.0’, ’ 5.0’, ’
+  - `N_CN` (numeric value for the concentration of new ice): ’‘,’ 0.0’,
+    ’ 0.3’, ’ 1.0’, ’ 2.0’, ’ 3.0’, ’ 4.0’, ’ 5.0’, ’ 6.0’, ’ 7.0’, ’
+    8.0’, ’ 9.0’, ’ 9.7’, ‘10.0’
+  - `N_COI` (numeric value for the concentration of old ice): ’‘,’ 0.0’,
+    ’ 0.3’, ’ 0.6’, ’ 1.0’, ’ 1.3’, ’ 2.0’, ’ 2.3’, ’ 3.0’, ’ 3.3’, ’
+    4.0’, ’ 4.3’, ’ 5.0’, ’ 5.3’, ’ 6.0’, ’ 6.3’, ’ 7.0’, ’ 7.3’, ’
+    8.0’, ’ 8.3’, ’ 9.0’, ’ 9.3’, ’ 9.7’, ‘10.0’
+  - `N_CSY` (numeric value for the concentration of second year ice):
+    ’‘,’ 0.0’, ’ 0.3’, ’ 1.0’, ’ 2.0’, ’ 3.0’, ’ 4.0’, ’ 5.0’, ’
     6.0’, ’ 7.0’, ’ 8.0’, ’ 9.0’, ’ 9.7’, ‘10.0’
-  - `N_COI`: ’‘,’ 0.0’, ’ 0.3’, ’ 0.6’, ’ 1.0’, ’ 1.3’, ’ 2.0’, ’ 2.3’,
-    ’ 3.0’, ’ 3.3’, ’ 4.0’, ’ 4.3’, ’ 5.0’, ’ 5.3’, ’ 6.0’, ’ 6.3’, ’
-    7.0’, ’ 7.3’, ’ 8.0’, ’ 8.3’, ’ 9.0’, ’ 9.3’, ’ 9.7’, ‘10.0’
-  - `N_CSY`: ’‘,’ 0.0’, ’ 0.3’, ’ 1.0’, ’ 2.0’, ’ 3.0’, ’ 4.0’, ’ 5.0’,
-    ’ 6.0’, ’ 7.0’, ’ 8.0’, ’ 9.0’, ’ 9.7’, ‘10.0’
-  - `N_CT`: ’‘,’ 0.0’, ’ 0.2’, ’ 0.3’, ’ 1.0’, ’ 2.0’, ’ 3.0’, ’ 4.0’, ’
-    5.0’, ’ 6.0’, ’ 7.0’, ’ 8.0’, ’ 9.0’, ’ 9.7’, ‘10.0’
-  - `N_CYI`: ’‘,’ 0.0’, ’ 0.3’, ’ 0.6’, ’ 1.0’, ’ 1.3’, ’ 2.0’, ’ 2.3’,
-    ’ 3.0’, ’ 3.3’, ’ 4.0’, ’ 4.3’, ’ 5.0’, ’ 5.3’, ’ 6.0’, ’ 6.3’, ’
-    7.0’, ’ 7.3’, ’ 8.0’, ’ 8.3’, ’ 9.0’, ’ 9.3’, ’ 9.7’, ‘10.0’
+  - `N_CT` (numeric value for total concentration): ’‘,’ 0.0’, ’ 0.2’, ’
+    0.3’, ’ 1.0’, ’ 2.0’, ’ 3.0’, ’ 4.0’, ’ 5.0’, ’ 6.0’, ’ 7.0’, ’
+    8.0’, ’ 9.0’, ’ 9.7’, ‘10.0’
+  - `N_CYI` (numeric value for the concentration of young ice): ’‘,’
+    0.0’, ’ 0.3’, ’ 0.6’, ’ 1.0’, ’ 1.3’, ’ 2.0’, ’ 2.3’, ’ 3.0’, ’
+    3.3’, ’ 4.0’, ’ 4.3’, ’ 5.0’, ’ 5.3’, ’ 6.0’, ’ 6.3’, ’ 7.0’, ’
+    7.3’, ’ 8.0’, ’ 8.3’, ’ 9.0’, ’ 9.3’, ’ 9.7’, ‘10.0’
+
+Prior to 1983, the following “ratio codes” were used. These appear to
+correspond mostly to the “numeric” codes, but are no longer documented.
+
   - `R_CFY`: ’‘,’/‘, ’0’, ‘1’, ‘2’, ‘3’, ‘4’, ‘5’, ‘6’, ‘7’, ‘8’, ‘9’,
     ‘F’
   - `R_CG`: ’‘,’/‘, ’0’, ‘1’, ‘2’, ‘3’, ‘4’, ‘5’, ‘6’, ‘7’, ‘8’, ‘9’,
@@ -218,21 +245,33 @@ retained.
     ‘F’
   - `R_SSY`: ’‘,’/‘, ’0’, ‘1’, ‘2’, ‘3’, ‘4’, ‘6’, ‘F’
 
-<!-- end list -->
+Except for the `R_*` codes (which end in 1983), the columns have been
+consistently used over time.
 
 ``` r
 attrs <- arrow::read_parquet("attrs.parquet")
-colnames(attrs)
 
-attrs %>% 
-  select(matches("^[A-Z]_[A-Z]{2,3}$")) %>% 
-  pivot_longer(everything()) %>% 
-  distinct(name, value) %>% 
-  arrange(name, value) %>% 
-  group_by(name) %>% 
-  summarise(
-    values = paste0("'", value, "'", collapse = ", ")
-  ) %>% 
-  with(glue::glue("- `{ name }`: { values }")) %>% 
-  glue::glue_collapse("\n") -> thing
+attr_sum_time <- attrs %>% 
+  select(region, date, matches("^[A-Z]_[A-Z]{2,3}$")) %>% 
+  group_by(region, date) %>% 
+  summarise_all(~any(. != "")) %>%
+  ungroup() %>% 
+  pivot_longer(-c(region, date)) %>% 
+  mutate(year = lubridate::year(date)) %>% 
+  group_by(region, year, name) %>% 
+  summarise(used = any(value))
 ```
+
+    ## `summarise()` regrouping output by 'region', 'year' (override with `.groups` argument)
+
+``` r
+attr_sum_time %>%
+  filter(!is.na(used)) %>% 
+  ggplot(aes(x = year, y = fct_rev(name), alpha = used)) +
+  geom_raster() +
+  facet_wrap(vars(region), ncol = 3) +
+  theme_bw(9) +
+  theme(legend.position = "bottom")
+```
+
+![](README_col-coverage-1.png)<!-- -->
