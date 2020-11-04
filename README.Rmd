@@ -6,35 +6,60 @@ output: github_document
 ```{r setup, include=FALSE}
 library(tidyverse)
 library(sf)
+options(dplyr.summarise.inform = FALSE)
 knitr::opts_chunk$set(echo = TRUE, dpi = 300, fig.path = "README_")
 ```
 
-This repo describes a pipeline for turning .zip files downloaded from the [CIS search tool](https://iceweb1.cis.ec.gc.ca/Archive/page1.xhtml) into usable data products that can be queried and loaded efficiently in R. Roughly,
-
-- Add .zip files downloaded from the search tool to zip/
-- Run zip-collect.R
-- Run gpkg-collect.R
-- Run attrs-collect.R
-
-Both zip-collect.R and gpkg-collect.R are sufficiently lazy such that they do not decompress/load anything that has already been converted to a gpkg. The result is a folder gpkg/ that contains easy-to-read (i.e., `sf::read_sf()`) .gpkg files and a highly queryable attribute table (read using `arrow::read_parquet()`).
-
-All of the geometry files are .gitignored because they don't fit on GitHub, but you can use the provided attrs.parquet and/or gpkg/meta.csv and/or zip/meta.csv to download a subset of the data (urls for each data source are provided in zip/meta.csv).
+This repo is an archive of the entire ice polygon dataset from the Canadian Ice Service, which can be downloaded piecemeal using the [CIS search tool](https://iceweb1.cis.ec.gc.ca/Archive/page1.xhtml). Use zip/meta.csv search for the existence of an ice polygon map (the `url` column contains the URL from which it can be downloaded). Use file-download.R to download the whole data set (about 14.8 GB uncompressed, 4.8 GB zipped) and gpkg.collect.R to convert files to .gpkg layers (which load 50-100 times faster than the raw .e00 files).
 
 ```{r}
 library(tidyverse)
-
-read_csv("zip/meta.csv")
+(zip_meta <- read_csv("zip/meta.csv", col_types = cols()))
 ```
 
-```{r}
-sf::read_sf("gpkg/EA_1968-06-25.gpkg")
+On average, there is one file per region per week. In 1983 the coding for some columns was changed, in (roughly) 1997 the HB region was added, and in (roughly) 2004, the CIS started producing all maps on Monday with internally-consistent polygons between overlapping regions.
+
+```{r date-coverage, fig.width=6, fig.height=12, warning=FALSE, echo=FALSE}
+zip_meta %>%
+  mutate(
+    year = lubridate::year(date),
+    week = lubridate::isoweek(date)
+  ) %>% 
+  group_by(region, year, week) %>% 
+  summarise(n = n()) %>%
+  ggplot(aes(x = week, y = year, fill = factor(n, levels = 1:5))) +
+  geom_tile() +
+  scale_fill_brewer(limits = factor(1:5)) +
+  scale_y_reverse(breaks = seq(1960, 2030, by = 10)) +
+  facet_grid(rows = vars(region), scales = "free_y", space = "free_y") +
+  coord_cartesian(expand = FALSE) +
+  theme_bw(8) +
+  theme(legend.position = "bottom")
 ```
 
+Also included is the collected attribute table from all files as a parquet file (because it's too big as a compressed CSV). You can use this to query relevant files based on attribute values and/or an area of interest before downloading any files.
+
 ```{r}
-arrow::read_parquet("attrs.parquet")
+library(arrow)
+(attrs <- read_parquet("attrs.parquet"))
 ```
 
 ## Dataset details
+
+### CRS
+
+The files in the archive appear to specify at least 4 coordinate reference systems. In some cases a coordinate reference system was not specified. All coordinate systems are lambert conformal conics with standard parallels at 49 and 77 north latitude with a central meridian at 100 degrees west longitude (latitude of origin: 40 degrees north latitude), however, they differ with respect to the datum/ellipsoid used to define the meridians/standard parallels. Since 2020-01-20 (when the CIS started distributing shapefiles), the WGS84 datum has been used. Prior to this date, it is likely that NAD27 was used to define the lambert conformal conic (except for several weeks during 2014 in the Great Lakes region).
+
+```{r}
+gpkg_meta <- read_csv("gpkg/meta.csv", col_types = cols())
+gpkg_meta %>%
+  mutate(gpkg_crs = str_replace_all(gpkg_crs, "meters", "METERS")) %>% 
+  count(gpkg_crs) %>% 
+  rev()
+```
+
+
+### Attributes
 
 A documentation of the SIGRID vector file format (i.e.,
 .gpkg files in gpkg/) can be found
@@ -98,9 +123,7 @@ Prior to 1983, the following "ratio codes" were used. These appear to correspond
 
 Except for the `R_*` codes (which end in 1983), the columns have been consistently used over time.
 
-```{r col-coverage, fig.width=6, fig.height=12, warning=FALSE}
-attrs <- arrow::read_parquet("attrs.parquet")
-
+```{r col-coverage, fig.width=6, fig.height=12, warning=FALSE, echo=FALSE}
 attr_sum_time <- attrs %>% 
   select(region, date, matches("^[A-Z]_[A-Z]{2,3}$")) %>% 
   group_by(region, date) %>% 

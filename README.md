@@ -1,99 +1,62 @@
 CIS Data Processing
 ================
 
-This repo describes a pipeline for turning .zip files downloaded from
-the [CIS search tool](https://iceweb1.cis.ec.gc.ca/Archive/page1.xhtml)
-into usable data products that can be queried and loaded efficiently in
-R. Roughly,
-
-  - Add .zip files downloaded from the search tool to zip/
-  - Run zip-collect.R
-  - Run gpkg-collect.R
-  - Run attrs-collect.R
-
-Both zip-collect.R and gpkg-collect.R are sufficiently lazy such that
-they do not decompress/load anything that has already been converted to
-a gpkg. The result is a folder gpkg/ that contains easy-to-read (i.e.,
-`sf::read_sf()`) .gpkg files and a highly queryable attribute table
-(read using `arrow::read_parquet()`).
-
-All of the geometry files are .gitignored because they don’t fit on
-GitHub, but you can use the provided attrs.parquet and/or gpkg/meta.csv
-and/or zip/meta.csv to download a subset of the data (urls for each data
-source are provided in zip/meta.csv).
+This repo is an archive of the entire ice polygon dataset from the
+Canadian Ice Service, which can be downloaded piecemeal using the [CIS
+search tool](https://iceweb1.cis.ec.gc.ca/Archive/page1.xhtml). Use
+zip/meta.csv search for the existence of an ice polygon map (the `url`
+column contains the URL from which it can be downloaded). Use
+file-download.R to download the whole data set (about 14.8 GB
+uncompressed, 4.8 GB zipped) and gpkg.collect.R to convert files to
+.gpkg layers (which load 50-100 times faster than the raw .e00 files).
 
 ``` r
 library(tidyverse)
-
-read_csv("zip/meta.csv")
+(zip_meta <- read_csv("zip/meta.csv", col_types = cols()))
 ```
-
-    ## 
-    ## -- Column specification --------------------------------------------------------
-    ## cols(
-    ##   region = col_character(),
-    ##   date = col_date(format = ""),
-    ##   region_code = col_character(),
-    ##   zip_file = col_character(),
-    ##   file = col_character(),
-    ##   file_size = col_double(),
-    ##   gpkg = col_character(),
-    ##   dsn = col_character(),
-    ##   url = col_character()
-    ## )
 
     ## # A tibble: 7,457 x 9
-    ##    region date       region_code zip_file  file   file_size gpkg   dsn   url    
-    ##    <chr>  <date>     <chr>       <chr>     <chr>      <dbl> <chr>  <chr> <chr>  
-    ##  1 EA     1968-06-25 a11         zip/cis_~ file/~    959470 gpkg/~ file~ https:~
-    ##  2 EA     1968-07-02 a11         zip/cis_~ file/~    965518 gpkg/~ file~ https:~
-    ##  3 EA     1968-07-11 a11         zip/cis_~ file/~   1017642 gpkg/~ file~ https:~
-    ##  4 EA     1968-07-18 a11         zip/cis_~ file/~   1047520 gpkg/~ file~ https:~
-    ##  5 EA     1968-07-25 a11         zip/cis_~ file/~   1110248 gpkg/~ file~ https:~
-    ##  6 EA     1968-08-01 a11         zip/cis_~ file/~   1150445 gpkg/~ file~ https:~
-    ##  7 EA     1968-08-08 a11         zip/cis_~ file/~   1198997 gpkg/~ file~ https:~
-    ##  8 EA     1968-08-15 a11         zip/cis_~ file/~   1186817 gpkg/~ file~ https:~
-    ##  9 EA     1968-08-22 a11         zip/cis_~ file/~   1147764 gpkg/~ file~ https:~
-    ## 10 EA     1968-08-29 a11         zip/cis_~ file/~   1111434 gpkg/~ file~ https:~
+    ##    region date       region_code zip    file    file_size gpkg   dsn    url     
+    ##    <chr>  <date>     <chr>       <chr>  <chr>       <dbl> <chr>  <chr>  <chr>   
+    ##  1 EA     1968-06-25 a11         zip/c~ file/r~    959470 gpkg/~ file/~ https:/~
+    ##  2 EA     1968-07-02 a11         zip/c~ file/r~    965518 gpkg/~ file/~ https:/~
+    ##  3 EA     1968-07-11 a11         zip/c~ file/r~   1017642 gpkg/~ file/~ https:/~
+    ##  4 EA     1968-07-18 a11         zip/c~ file/r~   1047520 gpkg/~ file/~ https:/~
+    ##  5 EA     1968-07-25 a11         zip/c~ file/r~   1110248 gpkg/~ file/~ https:/~
+    ##  6 EA     1968-08-01 a11         zip/c~ file/r~   1150445 gpkg/~ file/~ https:/~
+    ##  7 EA     1968-08-08 a11         zip/c~ file/r~   1198997 gpkg/~ file/~ https:/~
+    ##  8 EA     1968-08-15 a11         zip/c~ file/r~   1186817 gpkg/~ file/~ https:/~
+    ##  9 EA     1968-08-22 a11         zip/c~ file/r~   1147764 gpkg/~ file/~ https:/~
+    ## 10 EA     1968-08-29 a11         zip/c~ file/r~   1111434 gpkg/~ file/~ https:/~
     ## # ... with 7,447 more rows
 
+On average, there is one file per region per week. In 1983 the coding
+for some columns was changed, in (roughly) 1997 the HB region was added,
+and in (roughly) 2004, the CIS started producing all maps on Monday with
+internally-consistent polygons between overlapping regions.
+
+![](README_date-coverage-1.png)<!-- -->
+
+Also included is the collected attribute table from all files as a
+parquet file (because it’s too big as a compressed CSV). You can use
+this to query relevant files based on attribute values and/or an area of
+interest before downloading any files.
+
 ``` r
-sf::read_sf("gpkg/EA_1968-06-25.gpkg")
+library(arrow)
 ```
 
-    ## Simple feature collection with 161 features and 66 fields
-    ## geometry type:  POLYGON
-    ## dimension:      XY
-    ## bbox:           xmin: -294124.1 ymin: 2704501 xmax: 1856543 ymax: 5028246
-    ## projected CRS:  unnamed
-    ## # A tibble: 161 x 67
-    ##       AREA PERIMETER ARCE00_COV. ARCE00_COV.ID A_LEGEND REGION DATE_CARTE SOURCE
-    ##      <dbl>     <dbl>       <int>         <int> <chr>    <chr>  <chr>      <chr> 
-    ##  1 1.75e11 11537280            2             2 Remote ~ AE     19680625   "RATI~
-    ##  2 4.45e11  6040027            3             3 Land     AE     19680625   ""    
-    ##  3 4.43e10  2580854            4             4 Land     AE     19680625   ""    
-    ##  4 2.74e 6     6919.           5             5 No data  AE     19680625   ""    
-    ##  5 1.65e11  7528443            6             6 Land     AE     19680625   ""    
-    ##  6 6.42e 7    43507.           7             7 No data  AE     19680625   ""    
-    ##  7 2.91e 8   155819.           8             8 No data  AE     19680625   ""    
-    ##  8 4.02e10  3011698            9             9 Remote ~ AE     19680625   "RATI~
-    ##  9 1.58e 7    19627.          10            10 No data  AE     19680625   ""    
-    ## 10 1.34e 8    52649.          11            11 Land     AE     19680625   ""    
-    ## # ... with 151 more rows, and 59 more variables: MOD <chr>, EGG.ID <int>,
-    ## #   PNT_TYPE <int>, EGG_NAME <chr>, EGG_SCALE <int>, EGG_ATTR <chr>,
-    ## #   USER_ATTR <chr>, ROTATION <int>, E_CT <chr>, E_CA <chr>, E_CB <chr>,
-    ## #   E_CC <chr>, E_CD <chr>, E_SO <chr>, E_SA <chr>, E_SB <chr>, E_SC <chr>,
-    ## #   E_SD <chr>, E_SE <chr>, E_FA <chr>, E_FB <chr>, E_FC <chr>, E_FD <chr>,
-    ## #   E_FE <chr>, E_CS <chr>, R_CT <chr>, R_CMY <chr>, R_CSY <chr>, R_CFY <chr>,
-    ## #   R_CGW <chr>, R_CG <chr>, R_CN <chr>, R_PMY <chr>, R_PSY <chr>, R_PFY <chr>,
-    ## #   R_PGW <chr>, R_PG <chr>, R_PN <chr>, R_CS <chr>, R_SMY <chr>, R_SSY <chr>,
-    ## #   R_SFY <chr>, R_SGW <chr>, R_SG <chr>, R_SN <chr>, N_CT <chr>, N_COI <chr>,
-    ## #   N_CMY <chr>, N_CSY <chr>, N_CFY <chr>, N_CFY_TK <chr>, N_CFY_M <chr>,
-    ## #   N_CFY_TN <chr>, N_CYI <chr>, N_CGW <chr>, N_CG <chr>, N_CN <chr>,
-    ## #   N_CB <chr>, geom <POLYGON [m]>
+    ## Warning: package 'arrow' was built under R version 4.0.3
+
+    ## 
+    ## Attaching package: 'arrow'
+
+    ## The following object is masked from 'package:utils':
+    ## 
+    ##     timestamp
 
 ``` r
-arrow::read_parquet("attrs.parquet")
+(attrs <- read_parquet("attrs.parquet"))
 ```
 
     ## # A tibble: 1,820,631 x 86
@@ -127,6 +90,39 @@ arrow::read_parquet("attrs.parquet")
     ## #   N_CM <dbl>, N_CTN <dbl>
 
 ## Dataset details
+
+### CRS
+
+The files in the archive appear to specify at least 4 coordinate
+reference systems. In some cases a coordinate reference system was not
+specified. All coordinate systems are lambert conformal conics with
+standard parallels at 49 and 77 north latitude with a central meridian
+at 100 degrees west longitude (latitude of origin: 40 degrees north
+latitude), however, they differ with respect to the datum/ellipsoid used
+to define the meridians/standard parallels. Since 2020-01-20 (when the
+CIS started distributing shapefiles), the WGS84 datum has been used.
+Prior to this date, it is likely that NAD27 was used to define the
+lambert conformal conic (except for several weeks during 2014 in the
+Great Lakes region).
+
+``` r
+gpkg_meta <- read_csv("gpkg/meta.csv", col_types = cols())
+gpkg_meta %>%
+  mutate(gpkg_crs = str_replace_all(gpkg_crs, "meters", "METERS")) %>% 
+  count(gpkg_crs) %>% 
+  rev()
+```
+
+    ## # A tibble: 5 x 2
+    ##       n gpkg_crs                                                                
+    ##   <int> <chr>                                                                   
+    ## 1  3829 "PROJCS[\"unnamed\",GEOGCS[\"NAD27\",DATUM[\"North_American_Datum_1927\~
+    ## 2  3404 "PROJCS[\"unnamed\",GEOGCS[\"Unknown datum based upon the Clarke 1866 e~
+    ## 3    12 "PROJCS[\"unnamed\",GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS~
+    ## 4   176 "PROJCS[\"WGS_1984_Lambert_Conformal_Conic\",GEOGCS[\"WGS 84\",DATUM[\"~
+    ## 5     8  <NA>
+
+### Attributes
 
 A documentation of the SIGRID vector file format (i.e., .gpkg files in
 gpkg/) can be found
@@ -251,31 +247,5 @@ correspond mostly to the “numeric” codes, but are no longer documented.
 
 Except for the `R_*` codes (which end in 1983), the columns have been
 consistently used over time.
-
-``` r
-attrs <- arrow::read_parquet("attrs.parquet")
-
-attr_sum_time <- attrs %>% 
-  select(region, date, matches("^[A-Z]_[A-Z]{2,3}$")) %>% 
-  group_by(region, date) %>% 
-  summarise_all(~any(. != "")) %>%
-  ungroup() %>% 
-  pivot_longer(-c(region, date)) %>% 
-  mutate(year = lubridate::year(date)) %>% 
-  group_by(region, year, name) %>% 
-  summarise(used = any(value))
-```
-
-    ## `summarise()` regrouping output by 'region', 'year' (override with `.groups` argument)
-
-``` r
-attr_sum_time %>%
-  filter(!is.na(used)) %>% 
-  ggplot(aes(x = year, y = fct_rev(name), alpha = used)) +
-  geom_raster() +
-  facet_wrap(vars(region), ncol = 3) +
-  theme_bw(9) +
-  theme(legend.position = "bottom")
-```
 
 ![](README_col-coverage-1.png)<!-- -->

@@ -126,26 +126,28 @@ for (i in seq_len(nrow(files_shp))) {
 # generate geopackage meta
 geom_sum <- function(x, pb) {
   pb$tick()
-  as_tibble(vapour::vapour_geom_summary(x))
+
+  # fastest way to pull the CRS from each layer
+  layername <- str_remove(basename(x), "\\.gpkg$")
+  empty_sf <- sf::read_sf(
+    x,
+    query = glue::glue("SELECT geom FROM `{ layername }` LIMIT 0")
+  )
+
+  sum <- vapour::vapour_geom_summary(x)
+
+  tibble(
+    gpkg_n_features = length(sum$FID),
+    gpkg_xmin = min(sum$xmin),
+    gpkg_ymin = min(sum$ymin),
+    gpkg_xmax = max(sum$xmax),
+    gpkg_ymax = max(sum$ymax),
+    gpkg_crs = sf::st_crs(empty_sf)$Wkt %||% NA_character_
+  )
 }
-summary <- tibble(
+gpkg_meta <- tibble(
   gpkg = list.files("gpkg", "\\.gpkg$", full.names = TRUE),
   summary = map(gpkg, geom_sum, pb = progress::progress_bar$new(total = length(gpkg)))
-)
-
-gpkg_meta <- summary %>%
-  mutate(
-    gpkg_size = file.size(gpkg),
-    summary = map(
-      summary,
-      ~tibble(
-        gpkg_n_features = nrow(.x),
-        gpkg_xmin = min(.x$xmin),
-        gpkg_ymin = min(.x$ymin),
-        gpkg_xmax = max(.x$xmax),
-        gpkg_ymax = max(.x$ymax)
-      )
-    )
-  ) %>%
+) %>%
   unnest(summary) %>%
   write_csv("gpkg/meta.csv")
