@@ -4,4 +4,5 @@
 .Ruserdata
 file/
 zip/*.zip
-gpkg/*.gpkg
+gpkg/*.gpkg*
+*.qgs~
