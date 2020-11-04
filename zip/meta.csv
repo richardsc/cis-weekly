@@ -1,4 +1,4 @@
-region,date,region_code,zip_file,file,file_size,gpkg,dsn,url
+region,date,region_code,zip,file,file_size,gpkg,dsn,url
 EA,1968-06-25,a11,zip/cis_arc_1968.zip,file/rgc_a11_19680625_XXXXXX.e00,959470,gpkg/EA_1968-06-25.gpkg,file/rgc_a11_19680625_XXXXXX.e00,https://ice-glaces.ec.gc.ca/www_archive/AOI_11/Coverages/rgc_a11_19680625_XXXXXX.e00
 EA,1968-07-02,a11,zip/cis_arc_1968.zip,file/rgc_a11_19680702_XXXXXX.e00,965518,gpkg/EA_1968-07-02.gpkg,file/rgc_a11_19680702_XXXXXX.e00,https://ice-glaces.ec.gc.ca/www_archive/AOI_11/Coverages/rgc_a11_19680702_XXXXXX.e00
 EA,1968-07-11,a11,zip/cis_arc_1968.zip,file/rgc_a11_19680711_XXXXXX.e00,1017642,gpkg/EA_1968-07-11.gpkg,file/rgc_a11_19680711_XXXXXX.e00,https://ice-glaces.ec.gc.ca/www_archive/AOI_11/Coverages/rgc_a11_19680711_XXXXXX.e00

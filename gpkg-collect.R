@@ -4,7 +4,6 @@ library(sf)
 library(arce00) # remotes::install_github("paleolimbot/arce00")
 library(vapour)
 
-study_crs <- st_crs("ESRI:102002")
 zip_meta <- read_csv("zip/meta.csv")
 
 # extract .zip files from the search tool into file
@@ -20,11 +19,11 @@ zip_meta %>%
     !file.exists(file),
     !file.exists(gpkg)
   )  %>%
-  group_by(zip_file) %>%
+  group_by(zip) %>%
   group_walk(~{
     if (nrow(.x) == 0) return()
-    message(glue::glue("Extracting { length(.x$file) } files from { .y$zip_file }"))
-    unzip(.y$zip_file, basename(.x$file), exdir = exdir)
+    message(glue::glue("Extracting { length(.x$file) } files from { .y$zip }"))
+    unzip(.y$zip, basename(.x$file), exdir = exdir)
   })
 
 # .zip files get extracted to .shp files

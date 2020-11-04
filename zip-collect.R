@@ -65,8 +65,8 @@ processed_files <- zip_files %>%
 
 # also list zip files and get meta, writing to zip/meta.csv
 zip_meta <- tibble(
-  zip_file = list.files("zip", ".zip$", full.names = TRUE),
-  meta = map(zip_file, unzip, list = TRUE)
+  zip = list.files("zip", ".zip$", full.names = TRUE),
+  meta = map(zip, unzip, list = TRUE)
 ) %>%
   unnest(meta) %>%
   select(-Date) %>%
