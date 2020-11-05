@@ -5,4 +5,5 @@
 file/
 zip/*.zip
 gpkg/*.gpkg*
+gpkg-standardized/*.gpkg*
 *.qgs~
