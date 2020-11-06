@@ -4,12 +4,14 @@ library(arrow)
 library(vapour)
 
 gpkg_files <- list.files("gpkg", "\\.gpkg$", full.names = TRUE)
+gpkg_standardized_files <- str_replace(gpkg_files, "^gpkg", "gpkg-standardized")
 
-read_gpkg_tbl <- function(x, pb = progress::progress_bar$new(total = 1e6)) {
+read_gpkg_tbl <- function(x, x_std, pb = progress::progress_bar$new(total = 1e6)) {
   pb$tick()
-  # faster than read_sf() because it summarizes geometry
+  # use attributes from original file
   attr <- vapour::vapour_read_attributes(x)
-  geom_sum <- vapour::vapour_geom_summary(x)
+  # use geometry summary from standardized file (so can ensure consistent CRS)
+  geom_sum <- vapour::vapour_geom_summary(x_std)
 
   tibble(
     region = str_extract(x, "[A-Z]{2}"),
@@ -23,8 +25,12 @@ read_gpkg_tbl <- function(x, pb = progress::progress_bar$new(total = 1e6)) {
   )
 }
 
-tbls <- gpkg_files %>%
-  map(., read_gpkg_tbl, pb = progress::progress_bar$new(total = length(.)))
+tbls <- map2(
+  gpkg_files,
+  gpkg_standardized_files,
+  read_gpkg_tbl,
+  pb = progress::progress_bar$new(total = length(gpkg_files))
+)
 
 # write all attributes as a parquet file (can be lazily loaded/filtered
 # by the arrow package)

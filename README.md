@@ -10,6 +10,23 @@ file-download.R to download the whole data set (about 14.8 GB
 uncompressed, 4.8 GB zipped) and gpkg.collect.R to convert files to
 .gpkg layers (which load 50-100 times faster than the raw .e00 files).
 
+All of the geometry files are .gitignored (too big for a GitHub repo),
+but (some) are available in the shared directory on Eric’s server.
+
+  - zip/: Contains zip files downloaded from the search tool.
+  - file/: Where all zip files were extracted (2020-01-20 onward .zip
+    files contain .zip files, which are also extracted to file/ as
+    shapefiles). These can be downloaded using file-download.R.
+  - gpkg/: A raw conversion of .e00 and .shp files in file/ to
+    geopackage format with human-readable names.
+  - gpkg-standardized/: Like gpkg/ but with numeric columns as numbers,
+    blank values as missings (NULLs), identical column names for all
+    files, and standardized to the CRS of the most recent CIS files
+    (Lambert Conformal Conic, WGS84).
+
+Without downloading any files, you can use zip/meta.csv, gpkg/meta.csv,
+gpkg-standardized/meta.csv, and attrs.parquet to examine file metadata.
+
 ``` r
 library(tidyverse)
 (zip_meta <- read_csv("zip/meta.csv", col_types = cols()))
@@ -37,10 +54,34 @@ internally-consistent polygons between overlapping regions.
 
 ![](README_date-coverage-1.png)<!-- -->
 
+``` r
+(gpkg_standardized_meta <- read_csv(
+  "gpkg-standardized/meta.csv", 
+  col_types = cols()
+))
+```
+
+    ## # A tibble: 7,429 x 7
+    ##    gpkg_standardiz~ gpkg  gpkg_n_features gpkg_xmin gpkg_ymin gpkg_xmax
+    ##    <chr>            <chr>           <dbl>     <dbl>     <dbl>     <dbl>
+    ##  1 gpkg-standardiz~ gpkg~             161  -294124.   2704501  1856543.
+    ##  2 gpkg-standardiz~ gpkg~             165  -294124.   2704501  1856543.
+    ##  3 gpkg-standardiz~ gpkg~             186  -294124.   2704501  1856543.
+    ##  4 gpkg-standardiz~ gpkg~             201  -294124.   2704501  1856543.
+    ##  5 gpkg-standardiz~ gpkg~             229  -294124.   2704501  1856543.
+    ##  6 gpkg-standardiz~ gpkg~             255  -294124.   2704501  1856543.
+    ##  7 gpkg-standardiz~ gpkg~             258  -294124.   2704501  1856543.
+    ##  8 gpkg-standardiz~ gpkg~             260  -294124.   2704501  1856543.
+    ##  9 gpkg-standardiz~ gpkg~             250  -294124.   2704501  1856543.
+    ## 10 gpkg-standardiz~ gpkg~             240  -294124.   2704501  1856543.
+    ## # ... with 7,419 more rows, and 1 more variable: gpkg_ymax <dbl>
+
 Also included is the collected attribute table from all files as a
 parquet file (because it’s too big as a compressed CSV). You can use
 this to query relevant files based on attribute values and/or an area of
-interest before downloading any files.
+interest before downloading any files. The CRS for coordinates in
+attrs.parquet is the same as those in gpkg-standardized/ (Lambert
+Conformal Conic, WGS84).
 
 ``` r
 library(arrow)
@@ -62,16 +103,16 @@ library(arrow)
     ## # A tibble: 1,820,631 x 86
     ##    region date       feat_id feat_xmin feat_ymin feat_xmax feat_ymax    AREA
     ##    <chr>  <date>       <dbl>     <dbl>     <dbl>     <dbl>     <dbl>   <dbl>
-    ##  1 EA     1968-06-25       1  -294124.  3934064.   419601.  4653655  1.75e11
-    ##  2 EA     1968-06-25       2   596533.  3983989.  1496861.  5028246. 4.45e11
-    ##  3 EA     1968-06-25       3    63122.  4219701    316449.  4576497  4.43e10
-    ##  4 EA     1968-06-25       4   111211.  4570884    113119.  4573562. 2.74e 6
-    ##  5 EA     1968-06-25       5   157011.  4034862    580003.  4801968. 1.65e11
-    ##  6 EA     1968-06-25       6   710912.  4864858.   725849   4876308. 6.42e 7
-    ##  7 EA     1968-06-25       7   634969.  4816468.   699729   4838288  2.91e 8
-    ##  8 EA     1968-06-25       8   450870.  4336518.   693837.  4818899  4.02e10
-    ##  9 EA     1968-06-25       9   329870.  4677992    337830.  4683013  1.58e 7
-    ## 10 EA     1968-06-25      10    71727.  4488232.    93600.  4498682. 1.34e 8
+    ##  1 EA     1968-06-25       1  -294110.  3934007.   419581.  4653566. 1.75e11
+    ##  2 EA     1968-06-25       2   596506.  3983926.  1496794.  5028139. 4.45e11
+    ##  3 EA     1968-06-25       3    63119.  4219631.   316434.  4576411. 4.43e10
+    ##  4 EA     1968-06-25       4   111205.  4570798.   113114.  4573476. 2.74e 6
+    ##  5 EA     1968-06-25       5   157003.  4034800.   579976.  4801872. 1.65e11
+    ##  6 EA     1968-06-25       6   710878.  4864759.   725815.  4876208. 6.42e 7
+    ##  7 EA     1968-06-25       7   634939.  4816370.   699696.  4838190. 2.91e 8
+    ##  8 EA     1968-06-25       8   450848.  4336443.   693805.  4818802. 4.02e10
+    ##  9 EA     1968-06-25       9   329854.  4677901.   337814.  4682922. 1.58e 7
+    ## 10 EA     1968-06-25      10    71723.  4488150.    93596.  4498599. 1.34e 8
     ## # ... with 1,820,621 more rows, and 78 more variables: PERIMETER <dbl>,
     ## #   ARCE00_COV. <int>, ARCE00_COV.ID <int>, A_LEGEND <chr>, REGION <chr>,
     ## #   DATE_CARTE <chr>, SOURCE <chr>, MOD <chr>, EGG.ID <int>, PNT_TYPE <dbl>,

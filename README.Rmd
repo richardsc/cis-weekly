@@ -12,6 +12,15 @@ knitr::opts_chunk$set(echo = TRUE, dpi = 300, fig.path = "README_")
 
 This repo is an archive of the entire ice polygon dataset from the Canadian Ice Service, which can be downloaded piecemeal using the [CIS search tool](https://iceweb1.cis.ec.gc.ca/Archive/page1.xhtml). Use zip/meta.csv search for the existence of an ice polygon map (the `url` column contains the URL from which it can be downloaded). Use file-download.R to download the whole data set (about 14.8 GB uncompressed, 4.8 GB zipped) and gpkg.collect.R to convert files to .gpkg layers (which load 50-100 times faster than the raw .e00 files).
 
+All of the geometry files are .gitignored (too big for a GitHub repo), but (some) are available in the shared directory on Eric's server.
+
+- zip/: Contains zip files downloaded from the search tool.
+- file/: Where all zip files were extracted (2020-01-20 onward .zip files contain .zip files, which are also extracted to file/ as shapefiles). These can be downloaded using file-download.R.
+- gpkg/: A raw conversion of .e00 and .shp files in file/ to geopackage format with human-readable names.
+- gpkg-standardized/: Like gpkg/ but with numeric columns as numbers, blank values as missings (NULLs), identical column names for all files, and standardized to the CRS of the most recent CIS files (Lambert Conformal Conic, WGS84).
+
+Without downloading any files, you can use zip/meta.csv, gpkg/meta.csv, gpkg-standardized/meta.csv, and attrs.parquet to examine file metadata.
+
 ```{r}
 library(tidyverse)
 (zip_meta <- read_csv("zip/meta.csv", col_types = cols()))
@@ -37,7 +46,14 @@ zip_meta %>%
   theme(legend.position = "bottom")
 ```
 
-Also included is the collected attribute table from all files as a parquet file (because it's too big as a compressed CSV). You can use this to query relevant files based on attribute values and/or an area of interest before downloading any files.
+```{r}
+(gpkg_standardized_meta <- read_csv(
+  "gpkg-standardized/meta.csv", 
+  col_types = cols()
+))
+```
+
+Also included is the collected attribute table from all files as a parquet file (because it's too big as a compressed CSV). You can use this to query relevant files based on attribute values and/or an area of interest before downloading any files. The CRS for coordinates in attrs.parquet is the same as those in gpkg-standardized/ (Lambert Conformal Conic, WGS84).
 
 ```{r}
 library(arrow)
@@ -57,7 +73,6 @@ gpkg_meta %>%
   count(gpkg_crs) %>% 
   rev()
 ```
-
 
 ### Attributes
 
@@ -142,6 +157,3 @@ attr_sum_time %>%
   theme_bw(9) +
   theme(legend.position = "bottom")
 ```
-
-
-
