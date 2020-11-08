@@ -23,6 +23,9 @@ but (some) are available in the shared directory on Eric’s server.
     blank values as missings (NULLs), identical column names for all
     files, and standardized to the CRS of the most recent CIS files
     (Lambert Conformal Conic, WGS84).
+  - tif/: Rasterized versions of gpkg-standardized/. Currently the only
+    attribute considered is `N_CT` (total ice concentration as a numeric
+    value).
 
 Without downloading any files, you can use zip/meta.csv, gpkg/meta.csv,
 gpkg-standardized/meta.csv, and attrs.parquet to examine file metadata.

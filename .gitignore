@@ -6,4 +6,5 @@ file/
 zip/*.zip
 gpkg/*.gpkg*
 gpkg-standardized/*.gpkg*
+tif/*/*.tif
 *.qgs~

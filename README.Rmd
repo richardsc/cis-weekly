@@ -18,6 +18,7 @@ All of the geometry files are .gitignored (too big for a GitHub repo), but (some
 - file/: Where all zip files were extracted (2020-01-20 onward .zip files contain .zip files, which are also extracted to file/ as shapefiles). These can be downloaded using file-download.R.
 - gpkg/: A raw conversion of .e00 and .shp files in file/ to geopackage format with human-readable names.
 - gpkg-standardized/: Like gpkg/ but with numeric columns as numbers, blank values as missings (NULLs), identical column names for all files, and standardized to the CRS of the most recent CIS files (Lambert Conformal Conic, WGS84).
+- tif/: Rasterized versions of gpkg-standardized/. Currently the only attribute considered is `N_CT` (total ice concentration as a numeric value).
 
 Without downloading any files, you can use zip/meta.csv, gpkg/meta.csv, gpkg-standardized/meta.csv, and attrs.parquet to examine file metadata.
 
