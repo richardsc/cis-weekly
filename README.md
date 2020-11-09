@@ -25,13 +25,219 @@ but (some) are available in the shared directory on Eric’s server.
     (Lambert Conformal Conic, WGS84).
   - tif/: Rasterized versions of gpkg-standardized/. Currently the only
     attribute considered is `N_CT` (total ice concentration as a numeric
-    value).
+    value). All .tif files have identical grid extent and size (per
+    region). All .tif files are standardized to the CRS of the most
+    recent CIS files (Lambert Conformal Conic, WGS84).
+
+## Examples in R
+
+Using the [tidyverse](https://tidyverse.org) (for working with tables;
+has [excellent learning materials](https://r4ds.had.co.nz)),
+[sf](https://r-spatial.github.io/sf) (for working with vector geometry),
+and [stars](https://r-spatial.github.io/stars) (for working with raster
+geometry with a time component).
+
+``` r
+library(tidyverse)
+library(sf)
+library(stars)
+```
+
+Read a .gpkg file:
+
+``` r
+(poly <- read_sf("gpkg-standardized/EA_1968-06-25.gpkg"))
+```
+
+    ## Simple feature collection with 161 features and 37 fields
+    ## geometry type:  POLYGON
+    ## dimension:      XY
+    ## bbox:           xmin: -294110.3 ymin: 2704486 xmax: 1856465 ymax: 5028139
+    ## projected CRS:  WGS_1984_Lambert_Conformal_Conic
+    ## # A tibble: 161 x 38
+    ##    region date       PNT_TYPE E_CT  E_CA  E_CB  E_CC  E_CD  E_SO  E_SA  E_SB 
+    ##    <chr>  <date>        <dbl> <chr> <chr> <chr> <chr> <chr> <chr> <chr> <chr>
+    ##  1 EA     1968-06-25      118 10    <NA>  <NA>  <NA>  <NA>  <NA>  6     <NA> 
+    ##  2 EA     1968-06-25      900 <NA>  <NA>  <NA>  <NA>  <NA>  <NA>  <NA>  <NA> 
+    ##  3 EA     1968-06-25      900 <NA>  <NA>  <NA>  <NA>  <NA>  <NA>  <NA>  <NA> 
+    ##  4 EA     1968-06-25      123 <NA>  <NA>  <NA>  <NA>  <NA>  <NA>  <NA>  <NA> 
+    ##  5 EA     1968-06-25      900 <NA>  <NA>  <NA>  <NA>  <NA>  <NA>  <NA>  <NA> 
+    ##  6 EA     1968-06-25      123 <NA>  <NA>  <NA>  <NA>  <NA>  <NA>  <NA>  <NA> 
+    ##  7 EA     1968-06-25      123 <NA>  <NA>  <NA>  <NA>  <NA>  <NA>  <NA>  <NA> 
+    ##  8 EA     1968-06-25      118 10    <NA>  <NA>  <NA>  <NA>  <NA>  6     <NA> 
+    ##  9 EA     1968-06-25      123 <NA>  <NA>  <NA>  <NA>  <NA>  <NA>  <NA>  <NA> 
+    ## 10 EA     1968-06-25      900 <NA>  <NA>  <NA>  <NA>  <NA>  <NA>  <NA>  <NA> 
+    ## # ... with 151 more rows, and 27 more variables: E_SC <chr>, E_SD <chr>,
+    ## #   E_SE <chr>, E_FA <chr>, E_FB <chr>, E_FC <chr>, E_FD <chr>, E_FE <chr>,
+    ## #   E_CS <chr>, N_CT <dbl>, N_COI <dbl>, N_CMY <dbl>, N_CSY <dbl>, N_CFY <dbl>,
+    ## #   N_CFY_TK <dbl>, N_CFY_M <dbl>, N_CFY_TN <dbl>, N_CYI <dbl>, N_CGW <dbl>,
+    ## #   N_CG <dbl>, N_CN <dbl>, N_CB <dbl>, N_CVTK <dbl>, N_CTK <dbl>, N_CM <dbl>,
+    ## #   N_CTN <dbl>, geom <POLYGON [m]>
+
+``` r
+poly %>% 
+  filter(PNT_TYPE < 400) %>% 
+  select(PNT_TYPE, N_CT) %>% 
+  plot()
+```
+
+![](README_unnamed-chunk-2-1.png)<!-- -->
+
+Extract values at points of interest (best to use vector data for this):
+
+``` r
+gpkg_hb_files <- list.files("gpkg-standardized", "^HB", full.names = TRUE)
+gpkg_hb <- gpkg_hb_files %>% 
+  head(100) %>% 
+  map_dfr(read_sf)
+
+target_locations <- tibble(
+  label = c("P1", "P2"),
+  longitude = c(-56.47, -60.43),
+  latitude = c(54.85, 57.13)
+) %>% 
+  st_as_sf(coords = c("longitude", "latitude"), crs = 4326) %>% 
+  st_transform(st_crs(gpkg_hb))
+
+(intersected <- st_intersection(target_locations, gpkg_hb))
+```
+
+    ## Warning: attribute variables are assumed to be spatially constant throughout all
+    ## geometries
+
+    ## Simple feature collection with 200 features and 38 fields
+    ## geometry type:  POINT
+    ## dimension:      XY
+    ## bbox:           xmin: 2191885 ymin: 2568163 xmax: 2534903 ymax: 2618399
+    ## projected CRS:  WGS_1984_Lambert_Conformal_Conic
+    ## # A tibble: 200 x 39
+    ##    label region date       PNT_TYPE E_CT  E_CA  E_CB  E_CC  E_CD  E_SO  E_SA 
+    ##  * <chr> <chr>  <date>        <dbl> <chr> <chr> <chr> <chr> <chr> <chr> <chr>
+    ##  1 P1    HB     1997-01-01      101 <NA>  <NA>  <NA>  <NA>  <NA>  <NA>  <NA> 
+    ##  2 P2    HB     1997-01-01      101 <NA>  <NA>  <NA>  <NA>  <NA>  <NA>  <NA> 
+    ##  3 P2    HB     1997-02-01      118 9+    3     6     1     <NA>  7.    1.   
+    ##  4 P1    HB     1997-02-01      118 9+    3     5     2     <NA>  7.    7    
+    ##  5 P1    HB     1997-03-01      118 9+    3     7     <NA>  <NA>  7.    1.   
+    ##  6 P2    HB     1997-03-01      118 9+    2     6     2     <NA>  7.    7    
+    ##  7 P1    HB     1997-04-01      118 9+    5     5     <NA>  <NA>  7.    4.   
+    ##  8 P2    HB     1997-04-01      118 9+    5     5     <NA>  <NA>  7.    4.   
+    ##  9 P2    HB     1997-05-01      118 9+    5     5     <NA>  <NA>  7.    4.   
+    ## 10 P1    HB     1997-05-01      118 9+    5     5     <NA>  <NA>  7.    4.   
+    ## # ... with 190 more rows, and 28 more variables: E_SB <chr>, E_SC <chr>,
+    ## #   E_SD <chr>, E_SE <chr>, E_FA <chr>, E_FB <chr>, E_FC <chr>, E_FD <chr>,
+    ## #   E_FE <chr>, E_CS <chr>, N_CT <dbl>, N_COI <dbl>, N_CMY <dbl>, N_CSY <dbl>,
+    ## #   N_CFY <dbl>, N_CFY_TK <dbl>, N_CFY_M <dbl>, N_CFY_TN <dbl>, N_CYI <dbl>,
+    ## #   N_CGW <dbl>, N_CG <dbl>, N_CN <dbl>, N_CB <dbl>, N_CVTK <dbl>, N_CTK <dbl>,
+    ## #   N_CM <dbl>, N_CTN <dbl>, geometry <POINT [m]>
+
+``` r
+ggplot(intersected, aes(date, N_CT, col = label)) +
+  geom_line() +
+  theme_bw()
+```
+
+![](README_unnamed-chunk-3-1.png)<!-- -->
+
+Read a .tif file (note that `N_CT` values were multiplied by 10 to take
+advantage of storing them more efficiently as 8-bit integers):
+
+``` r
+(rst <- read_stars("tif/n-ct/EA_1968-06-25_n-ct.tif"))
+```
+
+    ## stars object with 2 dimensions and 1 attribute
+    ## attribute(s), summary of first 1e+05 cells:
+    ##  EA_1968-06-25_n-ct.tif 
+    ##  Min.   : NA            
+    ##  1st Qu.: NA            
+    ##  Median : NA            
+    ##  Mean   :NaN            
+    ##  3rd Qu.: NA            
+    ##  Max.   : NA            
+    ##  NA's   :1e+05          
+    ## dimension(s):
+    ##   from   to  offset delta                       refsys point values    
+    ## x    1 2299 -295000  1000 WGS_1984_Lambert_Conforma... FALSE   NULL [x]
+    ## y    1 2568 5270000 -1000 WGS_1984_Lambert_Conforma... FALSE   NULL [y]
+
+``` r
+st_bbox(rst)
+```
+
+    ##    xmin    ymin    xmax    ymax 
+    ## -295000 2702000 2004000 5270000
+
+``` r
+plot(rst)
+```
+
+![](README_unnamed-chunk-4-1.png)<!-- -->
+
+``` r
+# do math (can include other rasters)
+plot(rst / 10)
+```
+
+![](README_unnamed-chunk-4-2.png)<!-- -->
+
+``` r
+# work with matrix version
+mat <- as.matrix(rst)[[1]]
+str(mat)
+```
+
+    ##  num [1:2299, 1:2568] NA NA NA NA NA NA NA NA NA NA ...
+
+``` r
+mean(mat, na.rm = TRUE)
+```
+
+    ## [1] 67.06838
+
+Align to an existing data set using `st_warp()` (a wrapper around [GDAL
+warp](https://gdal.org/programs/gdalwarp.html)). See the resampling
+method section for resampling options.
+
+``` r
+data("levitus", package ="ocedata")
+
+sst <- st_as_stars(
+  st_bbox(c(xmin = -180, ymin = -89.5, xmax = 180, ymax = 89.5), crs = 4326),
+  nx = length(levitus$longitude), ny = length(levitus$latitude),
+  # stars expects reversed in the latitude direction
+  values = levitus$SST[, rev(seq_along(levitus$latitude))]
+)
+
+bbox_latlon <- st_bbox(
+  c(xmin = -73, ymin = 60, xmax = -52, ymax = 80),
+  crs = 4326
+)
+
+levitus_study_area <- st_crop(sst, bbox_latlon)
+```
+
+    ## although coordinates are longitude/latitude, st_intersects assumes that they are planar
+
+``` r
+rst_study_area <- st_warp(rst, levitus_study_area, use_gdal = TRUE, method = "mode")
+
+plot(levitus_study_area)
+```
+
+![](README_unnamed-chunk-5-1.png)<!-- -->
+
+``` r
+plot(rst_study_area)
+```
+
+![](README_unnamed-chunk-5-2.png)<!-- -->
+
+## Dataset details
 
 Without downloading any files, you can use zip/meta.csv, gpkg/meta.csv,
 gpkg-standardized/meta.csv, and attrs.parquet to examine file metadata.
 
 ``` r
-library(tidyverse)
 (zip_meta <- read_csv("zip/meta.csv", col_types = cols()))
 ```
 
@@ -132,8 +338,6 @@ library(arrow)
     ## #   FA <chr>, CB <chr>, SB <chr>, FB <chr>, CC <chr>, SC <chr>, FC <chr>,
     ## #   CN <chr>, CD <chr>, CF <chr>, POLY_TYPE <chr>, N_CVTK <dbl>, N_CTK <dbl>,
     ## #   N_CM <dbl>, N_CTN <dbl>
-
-## Dataset details
 
 ### CRS
 
