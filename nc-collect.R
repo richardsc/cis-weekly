@@ -13,11 +13,13 @@ for (region in regions) {
     next
   }
 
+  message(glue::glue("Region '{ region }'"))
+
   n_ct_tif_region <- n_ct_tif_files[str_starts(basename(n_ct_tif_files), region)]
   dates_region <- as.Date(str_extract(basename(n_ct_tif_region), "[0-9-]{10}"))
 
   tif0 <- read_stars(n_ct_tif_region[1])
-  crs_chr <- st_crs(tif0)$proj4string
+  crs_chr <- st_crs(tif0)$Wkt
 
   coords <- crossing(
     tibble(
@@ -47,9 +49,9 @@ for (region in regions) {
     vals = as.integer(difftime(dates_region, as.Date("1950-01-01"), units = "days"))
   )
 
-  # This is a dummy variable whose attribute 'proj4' carries the CRS
-  # info. Redundantly, the 'proj4' attribute of other variables along
-  # the x-y grid is also set to this.
+  # This is a dummy variable whose attribute 'spatial_ref' carries the CRS.
+  # Other variables must have an attribute 'grid_mapping' whose value is the
+  # name of this variable.
   var_crs <- ncvar_def(
     "crs",
     units = "",
@@ -62,7 +64,8 @@ for (region in regions) {
     units = "degrees",
     dim = list(dim_x, dim_y),
     longname = "Longitude (WGS84)",
-    prec = "float"
+    prec = "float",
+    compression = 5
   )
 
   var_latitude <- ncvar_def(
@@ -70,7 +73,8 @@ for (region in regions) {
     units = "degrees",
     dim = list(dim_x, dim_y),
     longname = "Latitude (WGS84)",
-    prec = "float"
+    prec = "float",
+    compression = 5
   )
 
   var_n_ct <- ncvar_def(
@@ -90,13 +94,10 @@ for (region in regions) {
   )
 
   # this is how GDAL writes CRS info
-  ncatt_put(nc, var_crs, "proj4", crs_chr)
+  ncatt_put(nc, var_crs, "spatial_ref", crs_chr)
   ncatt_put(nc, var_longitude, "grid_mapping", "crs")
-  ncatt_put(nc, var_longitude, "proj4", crs_chr)
   ncatt_put(nc, var_latitude, "grid_mapping", "crs")
-  ncatt_put(nc, var_latitude, "proj4", crs_chr)
   ncatt_put(nc, var_n_ct, "grid_mapping", "crs")
-  ncatt_put(nc, var_n_ct, "proj4", crs_chr)
 
   ncvar_put(nc, var_longitude, vals = coords$longitude)
   ncvar_put(nc, var_latitude, vals = coords$latitude)
