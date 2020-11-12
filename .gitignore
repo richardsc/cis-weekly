@@ -7,4 +7,5 @@ zip/*.zip
 gpkg/*.gpkg*
 gpkg-standardized/*.gpkg*
 tif/*/*.tif
+nc/*.nc
 *.qgs~
