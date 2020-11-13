@@ -4,17 +4,10 @@ library(stars)
 library(ncdf4)
 
 n_ct_tif_files <- list.files("tif/n-ct", "\\.tif$", full.names = TRUE)
-regions <- unique(str_extract(basename(n_ct_tif_files), "^[A-Z]{2}"))
 
 if (!dir.exists("nc")) dir.create("nc")
 
-for (region in regions) {
-  if (file.exists(glue::glue("nc/{ region }.nc"))) {
-    next
-  }
-
-  message(glue::glue("Region '{ region }'"))
-
+region_to_netcdf <- function(region) {
   n_ct_tif_region <- n_ct_tif_files[str_starts(basename(n_ct_tif_files), region)]
   dates_region <- as.Date(str_extract(basename(n_ct_tif_region), "[0-9-]{10}"))
 
@@ -121,3 +114,10 @@ for (region in regions) {
 
   nc_close(nc)
 }
+
+regions <- unique(str_extract(basename(n_ct_tif_files), "^[A-Z]{2}"))
+
+# can only paralellize here using regions because packing
+# each NetCDF file has to be done sequentially
+future::plan(future::multisession, workers = future::availableCores() - 1)
+furrr::future_walk(regions, region_to_netcdf, .progress = TRUE)

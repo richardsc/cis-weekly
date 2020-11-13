@@ -44,8 +44,8 @@ walk2(
   options = "COMPRESS=LZW"
 )
 
-rasterize_n_ct <- function(x, dest, pb) {
-  pb$tick()
+rasterize_n_ct <- function(x, dest, pb = NULL) {
+  if (!is.null(pb)) pb$tick()
 
   region <- str_extract(x, "[A-Z]{2}")
   date <- str_extract(x, "[0-9-]{10}")
@@ -76,11 +76,15 @@ rasterize_n_ct <- function(x, dest, pb) {
 
 if (!dir.exists("tif/n-ct")) dir.create("tif/n-ct")
 
+# parellellizing here makes a huge difference and works well because
+# there is a 1--1 relationship between input file and output file
+future::plan(future::multisession, workers = future::availableCores() - 1)
+
 gpkg_meta %>%
   transmute(
     x = gpkg_standardized,
     dest = glue::glue("tif/n-ct/{ region }_{ date }_n-ct.tif")
   ) %>%
   filter(!file.exists(dest)) %>%
-  pwalk(., rasterize_n_ct, pb = progress::progress_bar$new(total = nrow(.)))
+  furrr::future_pwalk(., rasterize_n_ct, .progress = TRUE)
 
