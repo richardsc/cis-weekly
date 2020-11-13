@@ -61,7 +61,7 @@ rasterize_n_ct <- function(x, dest, pb) {
     options = c(
       "-sql",
       glue::glue(
-        "SELECT PNT_TYPE, N_CT * 10 as rasterize_col, geom FROM `{ region }_{ date }` WHERE PNT_TYPE < 400"
+        "SELECT PNT_TYPE, N_CT * 10 as rasterize_col, geom FROM `{ region }_{ date }` WHERE PNT_TYPE < 400 AND N_CT IS NOT NULL"
       ),
       "-a", "rasterize_col",
       "-init", "255",
