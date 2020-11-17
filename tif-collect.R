@@ -108,7 +108,6 @@ gpkg_meta %>%
     dest = glue::glue("tif/pnt-type/{ region }_{ date }_pnt-type.tif")
   ) %>%
   filter(!file.exists(dest)) %>%
-  head(5) %>%
   furrr::future_pwalk(
     ., rasterize,
     var = "PNT_TYPE",
