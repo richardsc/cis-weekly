@@ -44,9 +44,7 @@ walk2(
   options = "COMPRESS=LZW"
 )
 
-rasterize_n_ct <- function(x, dest, pb = NULL) {
-  if (!is.null(pb)) pb$tick()
-
+rasterize <- function(x, dest, var, scale = 1, select = NULL, where = NULL, nodata = 255, type = "Byte") {
   region <- str_extract(x, "[A-Z]{2}")
   date <- str_extract(x, "[0-9-]{10}")
 
@@ -54,6 +52,13 @@ rasterize_n_ct <- function(x, dest, pb = NULL) {
   # because gdal_utils allows setting output type/compression and is faster.
   # Optimizing for speed over readability here in a big way.
   # https://gdal.org/programs/gdal_rasterize.html
+  if (is.null(where)) {
+    where <- glue::glue("{ var } IS NOT NULL")
+  }
+
+  select <- c(select, glue::glue("{ var } * { scale } as rasterize_col"), "geom")
+  select <- glue::glue_collapse(select, sep = ", ")
+
   gdal_utils(
     "rasterize",
     x,
@@ -61,24 +66,24 @@ rasterize_n_ct <- function(x, dest, pb = NULL) {
     options = c(
       "-sql",
       glue::glue(
-        "SELECT PNT_TYPE, N_CT * 10 as rasterize_col, geom FROM `{ region }_{ date }` WHERE PNT_TYPE < 400 AND N_CT IS NOT NULL"
+        "SELECT { select } FROM `{ region }_{ date }` WHERE { where }"
       ),
       "-a", "rasterize_col",
-      "-init", "255",
-      "-a_nodata", "255",
+      "-init", nodata,
+      "-a_nodata", nodata,
       "-te", unname(bboxes[[region]][c("xmin", "ymin", "xmax", "ymax")]),
       "-tr", cell_size, cell_size,
-      "-ot", "Byte",
+      "-ot", type,
       "-co", "COMPRESS=LZW"
     )
   )
 }
 
-if (!dir.exists("tif/n-ct")) dir.create("tif/n-ct")
-
 # parellellizing here makes a huge difference and works well because
 # there is a 1--1 relationship between input file and output file
 future::plan(future::multisession, workers = future::availableCores() - 1)
+
+if (!dir.exists("tif/n-ct")) dir.create("tif/n-ct")
 
 gpkg_meta %>%
   transmute(
@@ -86,5 +91,28 @@ gpkg_meta %>%
     dest = glue::glue("tif/n-ct/{ region }_{ date }_n-ct.tif")
   ) %>%
   filter(!file.exists(dest)) %>%
-  furrr::future_pwalk(., rasterize_n_ct, .progress = TRUE)
+  furrr::future_pwalk(
+    ., rasterize,
+    var = "N_CT",
+    scale = 10,
+    type = "Byte",
+    nodata = 255,
+    .progress = TRUE
+  )
 
+if (!dir.exists("tif/pnt-type")) dir.create("tif/pnt-type")
+
+gpkg_meta %>%
+  transmute(
+    x = gpkg_standardized,
+    dest = glue::glue("tif/pnt-type/{ region }_{ date }_pnt-type.tif")
+  ) %>%
+  filter(!file.exists(dest)) %>%
+  head(5) %>%
+  furrr::future_pwalk(
+    ., rasterize,
+    var = "PNT_TYPE",
+    type = "Int16",
+    nodata = -9999,
+    .progress = TRUE
+  )

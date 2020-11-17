@@ -4,8 +4,31 @@ library(stars)
 library(ncdf4)
 
 n_ct_tif_files <- list.files("tif/n-ct", "\\.tif$", full.names = TRUE)
+pnt_type_tif_files <- list.files("tif/pnt-type", "\\.tif$", full.names = TRUE)
 
-if (!dir.exists("nc")) dir.create("nc")
+land_mask_region <- function(region, using_n_files = 100) {
+  tif_region <- pnt_type_tif_files[str_starts(basename(pnt_type_tif_files), region)]
+
+  tif0 <- read_stars(tif_region[1])
+  tif0[[1]][] <- NA_integer_
+
+  every_n_files <- length(tif_region) %/% using_n_files + 1
+
+  for (i in seq_along(tif_region)) {
+    # land definition is fairly stable, but does change over time
+    # use subset of available files to calculate
+    if (((i - 1) %% every_n_files) != 0) {
+      next
+    }
+
+    tifi <- read_stars(tif_region[i])
+    is_land <- tifi[[1]] >= 400
+    tif0[[1]][!is.na(is_land) & is_land] <- 1L
+    tif0[[1]][!is.na(is_land) & !is_land] <- 0L
+  }
+
+  tif0
+}
 
 region_to_netcdf <- function(region) {
   n_ct_tif_region <- n_ct_tif_files[str_starts(basename(n_ct_tif_files), region)]
@@ -42,6 +65,9 @@ region_to_netcdf <- function(region) {
     vals = as.integer(difftime(dates_region, as.Date("1950-01-01"), units = "days"))
   )
 
+  # estimate land definition
+  land_def <- land_mask_region(region)
+
   # This is a dummy variable whose attribute 'spatial_ref' carries the CRS.
   # Other variables must have an attribute 'grid_mapping' whose value is the
   # name of this variable.
@@ -50,6 +76,16 @@ region_to_netcdf <- function(region) {
     units = "",
     dim = list(),
     prec = "integer"
+  )
+
+  var_land <- ncvar_def(
+    "land",
+    units = "boolean",
+    dim = list(dim_x, dim_y),
+    longname = "Land mask (1 for land, 0 for not land)",
+    missval = 255L,
+    prec = "integer",
+    compression = 5
   )
 
   var_longitude <- ncvar_def(
@@ -83,15 +119,17 @@ region_to_netcdf <- function(region) {
   # create file
   nc <- nc_create(
     glue::glue("nc/{ region }.nc"),
-    vars = list(var_crs, var_longitude, var_latitude, var_n_ct)
+    vars = list(var_crs, var_land, var_longitude, var_latitude, var_n_ct)
   )
 
   # this is how GDAL writes CRS info
   ncatt_put(nc, var_crs, "spatial_ref", crs_chr)
+  ncatt_put(nc, var_land, "grid_mapping", "crs")
   ncatt_put(nc, var_longitude, "grid_mapping", "crs")
   ncatt_put(nc, var_latitude, "grid_mapping", "crs")
   ncatt_put(nc, var_n_ct, "grid_mapping", "crs")
 
+  ncvar_put(nc, var_land, vals = land_def[[1]])
   ncvar_put(nc, var_longitude, vals = coords$longitude)
   ncvar_put(nc, var_latitude, vals = coords$latitude)
 
@@ -114,6 +152,9 @@ region_to_netcdf <- function(region) {
 
   nc_close(nc)
 }
+
+if (!dir.exists("nc")) dir.create("nc")
+
 
 regions <- unique(str_extract(basename(n_ct_tif_files), "^[A-Z]{2}"))
 
