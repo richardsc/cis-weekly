@@ -94,7 +94,7 @@ n_cols <- c(
 for (col in n_cols) {
   message(glue::glue("Processing column '{ col }'"))
 
-  suffix <- col %>% str_to_lower() %>% str_replace("_", "-")
+  suffix <- col %>% str_to_lower() %>% str_replace_all("_", "-")
   dir <- file.path("tif", suffix)
   if (!dir.exists(dir)) dir.create(dir)
 
