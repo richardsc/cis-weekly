@@ -1,0 +1,44 @@
+category,column_value,raster_value,quantitative_definition,definition,notes
+concentration,1,1,<= 1/10,NA,NA
+concentration,2,2,2/10,NA,NA
+concentration,3,3,3/10,NA,NA
+concentration,4,4,4/10,NA,NA
+concentration,5,5,5/10,NA,NA
+concentration,6,6,6/10,NA,NA
+concentration,7,7,7/10,NA,NA
+concentration,8,8,8/10,NA,NA
+concentration,9,9,9/10,NA,NA
+concentration,9+,10,> 9/10,NA,NA
+concentration,10,11,10/10,NA,NA
+concentration,"""unknown""",254,NA,NA,NA
+State of Development (age),1,1,<10 cm,New ice,NA
+State of Development (age),2,2,<10 cm,"Nilas, ice rind",NA
+State of Development (age),3,3,10-30 cm,Young ice,NA
+State of Development (age),4,4,10-15 cm,Grey ice,NA
+State of Development (age),5,5,15-30 cm,Grey-white ice,NA
+State of Development (age),6,6,>= 30cm,First-year ice,NA
+State of Development (age),7,7,30-70 cm,Thin first-year ice,NA
+State of Development (age),8,8,30-50 cm,First stage thing first-year,NA
+State of Development (age),9,9,50-70 cm,Second stage thing first-year,NA
+State of Development (age),1.,10,70-120 cm,Medium first-year ice,NA
+State of Development (age),4.,11,70-120 cm,Thick first-year ice,NA
+State of Development (age),7.,12,NA,Old ice,NA
+State of Development (age),8.,13,NA,Second-year ice,NA
+State of Development (age),9.,14,NA,Multi-year ice,NA
+State of Development (age),L.,15,NA,Ice of land origin,"""L"" is used in place of a solid triangle as documented on CIS website"
+State of Development (age),X,254,NA,Undetermined or unknown,NA
+State of Development (age),"""unknown""",254,NA,Undetermined or unknown,NA
+State of Development (age),?,254,NA,Undetermined or unknown,NA
+State of Development (age),B,16,NA,Brash ice,"""B"" is used to indicate ""brash ice"", can be treated as either first year ice (6) or thick first year ice (11)."
+Form of Ice (floe size),0,0,NA,Pancake ice,NA
+Form of Ice (floe size),1,1,<2 m,"Small ice cake, brash ice",NA
+Form of Ice (floe size),2,2,2-20 m,Ice cake,NA
+Form of Ice (floe size),3,3,20-100 m,Small floe,NA
+Form of Ice (floe size),4,4,100-500 m,Medium floe,NA
+Form of Ice (floe size),5,5,500-2000 m,Big floe,NA
+Form of Ice (floe size),6,6,2-10 km,Vast floe,NA
+Form of Ice (floe size),7,7,>10 km,Giant floe,NA
+Form of Ice (floe size),8,8,NA,Fast ice,NA
+Form of Ice (floe size),9,9,NA,"Icebergs, growlers or floeberg",NA
+Form of Ice (floe size),X,254,NA,"Undetermined, unknown or no form",NA
+Form of Ice (floe size),"""unknown""",254,NA,"Undetermined, unknown or no form",NA

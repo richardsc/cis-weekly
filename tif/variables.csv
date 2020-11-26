@@ -1,0 +1,17 @@
+category,column,symbol,definition,notes
+concentration,E_CT,Ct,Total concentration,Ratio of ice to water area expressed in tenths.
+concentration,E_CA,Ca,Partial concentration (thickest),"Ratio of ice to water area expressed in tenths. If only one ice type is present, no value will appear here and is assumed to be equal to Ct."
+concentration,E_CB,Cb,Partial concentration (2nd thickest),Ratio of ice to water area expressed in tenths.
+concentration,E_CC,Cc,Partial concentration (3rd thickest),Ratio of ice to water area expressed in tenths.
+concentration,E_CD,Cd,Partial concentration (4th thickest),Ratio of ice to water area expressed in tenths. Rarely ever used. Usually just inferred value if Sd is present.
+State of Development (age),E_SO,So,Stage of development (trace thickest),Stage of development of trace of ice thicker than Sa values. Concentration is not indicated for So.
+State of Development (age),E_SA,Sa,Stage of development (thickest),Stage of development of ice reported by Ca.
+State of Development (age),E_SB,Sb,Stage of development (2nd thickest),Stage of development of ice reported by Cb.
+State of Development (age),E_SC,Sc,Stage of development (3rd thickest),Stage of development of ice reported by Cc.
+State of Development (age),E_SD,Sd,Stage of development (4th thickest),"Stage of development of ice thinner than Sc. When 'Sd' is used and 'Cd' is omitted, 'Cd' equals Ct-(Ca+Cb+Cc)"
+State of Development (age),E_SE,Se,Stage of development (additional group),Rarely if ever used. Only reported when a thinner ice type remains after Sd. Concentration is not reported for Se.
+Form of Ice (floe size),E_FA,Fa,Form of ice (thickest),Predominant floe size of ice reported by Sa.
+Form of Ice (floe size),E_FB,Fb,Form of ice (2nd thickest),Predominant floe size of ice reported by Sb.
+Form of Ice (floe size),E_FC,Fc,Form of ice (3rd thickest),Predominant floe size of ice reported by Sc.
+Form of Ice (floe size),E_FD,Fd,Form of ice (4th thickest),Predominant floe size of ice reported by Sd.
+Form of Ice (floe size),E_FE,Fe,Form of ice (additional group),Predominant floe size of ice reported by Se. Rarely if ever used.

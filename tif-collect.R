@@ -46,8 +46,8 @@ walk2(
 
 rasterize <- function(x, dest, var, scale = 1, select = NULL, where = NULL,
                       nodata = 255, type = "Byte") {
-  region <- str_extract(x, "[A-Z]{2}")
-  date <- str_extract(x, "[0-9-]{10}")
+  region <- str_extract(basename(x), "[A-Z]{2}")
+  date <- str_extract(basename(x), "[0-9-]{10}")
 
   # Using the advanced version (gdal_utils instead of stars::st_rasterize)
   # because gdal_utils allows setting output type/compression and is faster.
@@ -132,5 +132,79 @@ gpkg_meta %>%
     .progress = TRUE
   )
 
-# E_ columns (WIP)
+# E_ columns (require string -> integer mapping)
+# read from yaml and write to csv
 
+coding_yaml <- yaml::read_yaml("raster-codes.yaml")
+
+variables <- tibble(
+  category = map_chr(coding_yaml, "category"),
+  variables = map(coding_yaml, "variables")
+) %>%
+  unnest_longer(variables) %>%
+  unnest_wider(variables) %>%
+  write_csv("tif/variables.csv")
+
+value_mapping <- tibble(
+  category = map_chr(coding_yaml, "category"),
+  coding = map(coding_yaml, "coding")
+) %>%
+  unnest_longer(coding) %>%
+  unnest_wider(coding) %>%
+  write_csv("tif/value_mapping.csv")
+
+
+e_cols <- c(
+  "E_CT", "E_CA", "E_CB", "E_CC", "E_CD", "E_SO", "E_SA", "E_SB",
+  "E_SC", "E_SD", "E_SE", "E_FA", "E_FB", "E_FC", "E_FD", "E_FE"
+)
+
+if (any(!(e_cols %in% variables$column))) {
+  stop("Some `e_cols` do not have a mapping defined in `variables`")
+}
+
+mappings <- variables %>%
+  select(category, column) %>%
+  left_join(value_mapping, by = "category") %>%
+  select(column, column_value, raster_value) %>%
+  group_by(column) %>%
+  nest(data = c(column_value, raster_value)) %>%
+  deframe() %>%
+  map(deframe)
+
+rasterize_codified_cols <- function(gpkg, region, date) {
+  suffix <- e_cols %>% str_to_lower() %>% str_replace_all("_", "-")
+  dir <- file.path("tif", suffix)
+  dest <- glue::glue("{ dir }/{ region }_{ date }_{ suffix }.tif")
+  if (all(file.exists(dest))) {
+    return()
+  }
+
+  tmp_dir <- tempfile()
+  dir.create(tmp_dir)
+  tmp_gpkg <- file.path(tmp_dir, basename(gpkg))
+  on.exit(unlink(tmp_dir, recursive = TRUE))
+
+  df <- read_sf(gpkg) %>% select(all_of(e_cols)) %>% as_tibble()
+  df[e_cols] <- map(df[e_cols], na_if, "")
+  df[e_cols] <- map2(df[e_cols], mappings[e_cols], ~unname(.y[.x]))
+  write_sf(df, tmp_gpkg)
+
+  for (i in seq_along(e_cols)) {
+    if (file.exists(dest[i])) {
+      break
+    }
+    if (!dir.exists(dir[i])) dir.create(dir[i])
+    rasterize(
+      tmp_gpkg, dest[i],
+      var = e_cols[i],
+      type = "Byte",
+      nodata = 255
+    )
+  }
+}
+
+# actually
+gpkg_meta %>%
+  select(gpkg, region, date) %>%
+  future_pwalk(rasterize_codified_cols)

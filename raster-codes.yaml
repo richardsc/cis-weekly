@@ -65,7 +65,7 @@
     raster_value: 11
     quantitative_definition: 10/10
   - column_value: '"unknown"'
-    raster_value: -1
+    raster_value: 254
 
 - category: State of Development (age)
 
@@ -164,13 +164,13 @@
     definition: Ice of land origin
     notes: '"L" is used in place of a solid triangle as documented on CIS website'
   - column_value: X
-    raster_value: -1
+    raster_value: 254
     definition: Undetermined or unknown
   - column_value: '"unknown"'
-    raster_value: -1
+    raster_value: 254
     definition: Undetermined or unknown
   - column_value: '?'
-    raster_value: -1
+    raster_value: 254
     definition: Undetermined or unknown
   - column_value: B
     raster_value: 16
@@ -247,8 +247,8 @@
     raster_value: 9
     definition: Icebergs, growlers or floeberg
   - column_value: X
-    raster_value: -1
+    raster_value: 254
     definition: Undetermined, unknown or no form
   - column_value: '"unknown"'
-    raster_value: -1
+    raster_value: 254
     definition: Undetermined, unknown or no form
