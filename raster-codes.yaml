@@ -1,0 +1,254 @@
+
+- category: concentration
+
+  variables:
+
+  - column: E_CT
+    symbol: Ct
+    definition: Total concentration
+    notes: Ratio of ice to water area expressed in tenths.
+
+  - column: E_CA
+    symbol: Ca
+    definition: Partial concentration (thickest)
+    notes: Ratio of ice to water area expressed in tenths. If only one ice type is present,
+      no value will appear here and is assumed to be equal to Ct.
+
+  - column: E_CB
+    symbol: Cb
+    definition: Partial concentration (2nd thickest)
+    notes: Ratio of ice to water area expressed in tenths.
+
+  - column: E_CC
+    symbol: Cc
+    definition: Partial concentration (3rd thickest)
+    notes: Ratio of ice to water area expressed in tenths.
+
+  - column: E_CD
+    symbol: Cd
+    definition: Partial concentration (4th thickest)
+    notes: Ratio of ice to water area expressed in tenths. Rarely ever used. Usually
+      just inferred value if Sd is present.
+
+  coding:
+  - column_value: '1'
+    raster_value: 1
+    quantitative_definition: <= 1/10
+  - column_value: '2'
+    raster_value: 2
+    quantitative_definition: 2/10
+  - column_value: '3'
+    raster_value: 3
+    quantitative_definition: 3/10
+  - column_value: '4'
+    raster_value: 4
+    quantitative_definition: 4/10
+  - column_value: '5'
+    raster_value: 5
+    quantitative_definition: 5/10
+  - column_value: '6'
+    raster_value: 6
+    quantitative_definition: 6/10
+  - column_value: '7'
+    raster_value: 7
+    quantitative_definition: 7/10
+  - column_value: '8'
+    raster_value: 8
+    quantitative_definition: 8/10
+  - column_value: '9'
+    raster_value: 9
+    quantitative_definition: 9/10
+  - column_value: 9+
+    raster_value: 10
+    quantitative_definition: '> 9/10'
+  - column_value: '10'
+    raster_value: 11
+    quantitative_definition: 10/10
+  - column_value: '"unknown"'
+    raster_value: -1
+
+- category: State of Development (age)
+
+  variables:
+
+  - column: E_SO
+    symbol: So
+    definition: Stage of development (trace thickest)
+    notes: Stage of development of trace of ice thicker than Sa values. Concentration
+      is not indicated for So.
+
+  - column: E_SA
+    symbol: Sa
+    definition: Stage of development (thickest)
+    notes: Stage of development of ice reported by Ca.
+
+  - column: E_SB
+    symbol: Sb
+    definition: Stage of development (2nd thickest)
+    notes: Stage of development of ice reported by Cb.
+
+  - column: E_SC
+    symbol: Sc
+    definition: Stage of development (3rd thickest)
+    notes: Stage of development of ice reported by Cc.
+
+  - column: E_SD
+    symbol: Sd
+    definition: Stage of development (4th thickest)
+    notes: Stage of development of ice thinner than Sc. When 'Sd' is used and 'Cd' is
+      omitted, 'Cd' equals Ct-(Ca+Cb+Cc)
+
+  - column: E_SE
+    symbol: Se
+    definition: Stage of development (additional group)
+    notes: Rarely if ever used. Only reported when a thinner ice type remains after
+      Sd. Concentration is not reported for Se.
+
+  coding:
+
+  - column_value: '1'
+    raster_value: 1
+    definition: New ice
+    quantitative_definition: <10 cm
+  - column_value: '2'
+    raster_value: 2
+    definition: Nilas, ice rind
+    quantitative_definition: <10 cm
+  - column_value: '3'
+    raster_value: 3
+    definition: Young ice
+    quantitative_definition: 10-30 cm
+  - column_value: '4'
+    raster_value: 4
+    definition: Grey ice
+    quantitative_definition: 10-15 cm
+  - column_value: '5'
+    raster_value: 5
+    definition: Grey-white ice
+    quantitative_definition: 15-30 cm
+  - column_value: '6'
+    raster_value: 6
+    definition: First-year ice
+    quantitative_definition: '>= 30cm'
+  - column_value: '7'
+    raster_value: 7
+    definition: Thin first-year ice
+    quantitative_definition: 30-70 cm
+  - column_value: '8'
+    raster_value: 8
+    definition: First stage thing first-year
+    quantitative_definition: 30-50 cm
+  - column_value: '9'
+    raster_value: 9
+    definition: Second stage thing first-year
+    quantitative_definition: 50-70 cm
+  - column_value: '1.'
+    raster_value: 10
+    definition: Medium first-year ice
+    quantitative_definition: 70-120 cm
+  - column_value: '4.'
+    raster_value: 11
+    definition: Thick first-year ice
+    quantitative_definition: 70-120 cm
+  - column_value: '7.'
+    raster_value: 12
+    definition: Old ice
+  - column_value: '8.'
+    raster_value: 13
+    definition: Second-year ice
+  - column_value: '9.'
+    raster_value: 14
+    definition: Multi-year ice
+  - column_value: L.
+    raster_value: 15
+    definition: Ice of land origin
+    notes: '"L" is used in place of a solid triangle as documented on CIS website'
+  - column_value: X
+    raster_value: -1
+    definition: Undetermined or unknown
+  - column_value: '"unknown"'
+    raster_value: -1
+    definition: Undetermined or unknown
+  - column_value: '?'
+    raster_value: -1
+    definition: Undetermined or unknown
+  - column_value: B
+    raster_value: 16
+    definition: Brash ice
+    notes: '"B" is used to indicate "brash ice", can be treated as either first year
+      ice (6) or thick first year ice (11).'
+
+- category: Form of Ice (floe size)
+
+  variables:
+
+  - column: E_FA
+    symbol: Fa
+    definition: Form of ice (thickest)
+    notes: Predominant floe size of ice reported by Sa.
+
+  - column: E_FB
+    symbol: Fb
+    definition: Form of ice (2nd thickest)
+    notes: Predominant floe size of ice reported by Sb.
+
+  - column: E_FC
+    symbol: Fc
+    definition: Form of ice (3rd thickest)
+    notes: Predominant floe size of ice reported by Sc.
+
+  - column: E_FD
+    symbol: Fd
+    definition: Form of ice (4th thickest)
+    notes: Predominant floe size of ice reported by Sd.
+
+  - column: E_FE
+    symbol: Fe
+    definition: Form of ice (additional group)
+    notes: Predominant floe size of ice reported by Se. Rarely if ever used.
+
+  coding:
+
+  - column_value: '0'
+    raster_value: 0
+    definition: Pancake ice
+  - column_value: '1'
+    raster_value: 1
+    definition: Small ice cake, brash ice
+    quantitative_definition: <2 m
+  - column_value: '2'
+    raster_value: 2
+    definition: Ice cake
+    quantitative_definition: 2-20 m
+  - column_value: '3'
+    raster_value: 3
+    definition: Small floe
+    quantitative_definition: 20-100 m
+  - column_value: '4'
+    raster_value: 4
+    definition: Medium floe
+    quantitative_definition: 100-500 m
+  - column_value: '5'
+    raster_value: 5
+    definition: Big floe
+    quantitative_definition: 500-2000 m
+  - column_value: '6'
+    raster_value: 6
+    definition: Vast floe
+    quantitative_definition: 2-10 km
+  - column_value: '7'
+    raster_value: 7
+    definition: Giant floe
+    quantitative_definition: '>10 km'
+  - column_value: '8'
+    raster_value: 8
+    definition: Fast ice
+  - column_value: '9'
+    raster_value: 9
+    definition: Icebergs, growlers or floeberg
+  - column_value: X
+    raster_value: -1
+    definition: Undetermined, unknown or no form
+  - column_value: '"unknown"'
+    raster_value: -1
+    definition: Undetermined, unknown or no form
