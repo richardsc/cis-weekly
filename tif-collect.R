@@ -44,7 +44,8 @@ walk2(
   options = "COMPRESS=LZW"
 )
 
-rasterize <- function(x, dest, var, scale = 1, select = NULL, where = NULL, nodata = 255, type = "Byte") {
+rasterize <- function(x, dest, var, scale = 1, select = NULL, where = NULL,
+                      nodata = 255, type = "Byte") {
   region <- str_extract(x, "[A-Z]{2}")
   date <- str_extract(x, "[0-9-]{10}")
 
@@ -83,22 +84,37 @@ rasterize <- function(x, dest, var, scale = 1, select = NULL, where = NULL, noda
 # there is a 1--1 relationship between input file and output file
 future::plan(future::multisession, workers = future::availableCores() - 1)
 
-if (!dir.exists("tif/n-ct")) dir.create("tif/n-ct")
+# all N_* columns
+n_cols <- c(
+  "N_CT", "N_COI", "N_CMY", "N_CSY", "N_CFY", "N_CFY_TK", "N_CFY_M",
+  "N_CFY_TN", "N_CYI", "N_CGW", "N_CG", "N_CN", "N_CB", "N_CVTK",
+  "N_CTK", "N_CM", "N_CTN"
+)
 
-gpkg_meta %>%
-  transmute(
-    x = gpkg_standardized,
-    dest = glue::glue("tif/n-ct/{ region }_{ date }_n-ct.tif")
-  ) %>%
-  filter(!file.exists(dest)) %>%
-  furrr::future_pwalk(
-    ., rasterize,
-    var = "N_CT",
-    scale = 10,
-    type = "Byte",
-    nodata = 255,
-    .progress = TRUE
-  )
+for (col in n_cols) {
+  message(glue::glue("Processing column '{ col }'"))
+
+  suffix <- col %>% str_to_lower() %>% str_replace("_", "-")
+  dir <- file.path("tif", suffix)
+  if (!dir.exists(dir)) dir.create(dir)
+
+  gpkg_meta %>%
+    transmute(
+      x = gpkg_standardized,
+      dest = glue::glue("{ dir }/{ region }_{ date }_{ suffix }.tif")
+    ) %>%
+    filter(!file.exists(dest)) %>%
+    furrr::future_pwalk(
+      ., rasterize,
+      var = col,
+      scale = 10,
+      type = "Byte",
+      nodata = 255,
+      .progress = TRUE
+    )
+}
+
+# PNT_TYPE column
 
 if (!dir.exists("tif/pnt-type")) dir.create("tif/pnt-type")
 
@@ -115,3 +131,6 @@ gpkg_meta %>%
     nodata = -9999,
     .progress = TRUE
   )
+
+# E_ columns (WIP)
+
