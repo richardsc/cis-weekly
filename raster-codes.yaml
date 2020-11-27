@@ -31,6 +31,12 @@
       just inferred value if Sd is present.
 
   coding:
+  - column_value: '0'
+    raster_value: 0
+    quantitative_definition: 0/10
+  - column_value: '0.'
+    raster_value: 0
+    quantitative_definition: 0/10
   - column_value: '1'
     raster_value: 1
     quantitative_definition: <= 1/10
@@ -65,6 +71,8 @@
     raster_value: 11
     quantitative_definition: 10/10
   - column_value: '"unknown"'
+    raster_value: 254
+  - column_value: '?'
     raster_value: 254
 
 - category: State of Development (age)
@@ -146,6 +154,10 @@
     raster_value: 10
     definition: Medium first-year ice
     quantitative_definition: 70-120 cm
+  - column_value: '10'
+    raster_value: 10
+    definition: Medium first-year ice
+    quantitative_definition: 70-120 cm
   - column_value: '4.'
     raster_value: 11
     definition: Thick first-year ice
@@ -159,6 +171,10 @@
   - column_value: '9.'
     raster_value: 14
     definition: Multi-year ice
+  - column_value: L
+    raster_value: 15
+    definition: Ice of land origin
+    notes: '"L" is used in place of a solid triangle as documented on CIS website'
   - column_value: L.
     raster_value: 15
     definition: Ice of land origin

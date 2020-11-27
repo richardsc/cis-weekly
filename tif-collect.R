@@ -172,6 +172,17 @@ mappings <- variables %>%
   deframe() %>%
   map(deframe)
 
+# check to make sure all values in attributes have a mapping!
+# skipping because snappy decompression is not always available on Linux
+# attrs <- arrow::read_parquet("attrs.parquet")
+# attrs_e_vals <- attrs %>% select(all_of(e_cols)) %>% map(unique) %>% map(sort) %>% map(setdiff, "")
+# attrs_with_no_mapping <- map2(attrs_e_vals, map(mappings, names), setdiff)
+# has_complete_mapping <- map_lgl(attrs_with_no_mapping, identical, character(0))
+#
+# if (any(!has_complete_mapping)) {
+#   stop("Not all column values have a complete mapping.")
+# }
+
 rasterize_codified_cols <- function(gpkg, region, date) {
   suffix <- e_cols %>% str_to_lower() %>% str_replace_all("_", "-")
   dir <- file.path("tif", suffix)
