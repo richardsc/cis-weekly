@@ -1,4 +1,6 @@
 category,column_value,raster_value,quantitative_definition,definition,notes
+concentration,0,0,0/10,NA,NA
+concentration,0.,0,0/10,NA,NA
 concentration,1,1,<= 1/10,NA,NA
 concentration,2,2,2/10,NA,NA
 concentration,3,3,3/10,NA,NA
@@ -11,6 +13,7 @@ concentration,9,9,9/10,NA,NA
 concentration,9+,10,> 9/10,NA,NA
 concentration,10,11,10/10,NA,NA
 concentration,"""unknown""",254,NA,NA,NA
+concentration,?,254,NA,NA,NA
 State of Development (age),1,1,<10 cm,New ice,NA
 State of Development (age),2,2,<10 cm,"Nilas, ice rind",NA
 State of Development (age),3,3,10-30 cm,Young ice,NA
@@ -21,10 +24,12 @@ State of Development (age),7,7,30-70 cm,Thin first-year ice,NA
 State of Development (age),8,8,30-50 cm,First stage thing first-year,NA
 State of Development (age),9,9,50-70 cm,Second stage thing first-year,NA
 State of Development (age),1.,10,70-120 cm,Medium first-year ice,NA
+State of Development (age),10,10,70-120 cm,Medium first-year ice,NA
 State of Development (age),4.,11,70-120 cm,Thick first-year ice,NA
 State of Development (age),7.,12,NA,Old ice,NA
 State of Development (age),8.,13,NA,Second-year ice,NA
 State of Development (age),9.,14,NA,Multi-year ice,NA
+State of Development (age),L,15,NA,Ice of land origin,"""L"" is used in place of a solid triangle as documented on CIS website"
 State of Development (age),L.,15,NA,Ice of land origin,"""L"" is used in place of a solid triangle as documented on CIS website"
 State of Development (age),X,254,NA,Undetermined or unknown,NA
 State of Development (age),"""unknown""",254,NA,Undetermined or unknown,NA

@@ -218,4 +218,4 @@ rasterize_codified_cols <- function(gpkg, region, date) {
 # process all files
 gpkg_meta %>%
   select(gpkg = gpkg_standardized, region, date) %>%
-  furrr::future_pwalk(rasterize_codified_cols, ..progress = TRUE)
+  furrr::future_pwalk(rasterize_codified_cols, .progress = TRUE)
