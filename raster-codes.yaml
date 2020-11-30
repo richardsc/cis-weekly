@@ -144,11 +144,11 @@
     quantitative_definition: 30-70 cm
   - column_value: '8'
     raster_value: 8
-    definition: First stage thing first-year
+    definition: First stage thin first-year
     quantitative_definition: 30-50 cm
   - column_value: '9'
     raster_value: 9
-    definition: Second stage thing first-year
+    definition: Second stage thin first-year
     quantitative_definition: 50-70 cm
   - column_value: '1.'
     raster_value: 10
