@@ -50,7 +50,7 @@ weeks <- tibble(
 ```
 
 
-```{r, animation.hook='gifski', interval = 1 / 5, dpi = 96}
+```{r anim-resolute, interval = 1 / 5, dpi = 96}
 aggregated <- NULL
 
 for (i in seq_len(nrow(weeks))) {
