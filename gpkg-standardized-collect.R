@@ -6,7 +6,7 @@ library(arrow)
 # shift slightly differently. This is only important
 # if more than one person/computer is writing the files
 # so that they stay internally consistent (dd is using
-# PROJ 6.3.1).
+# PROJ 7.2.1).
 library(sf)
 
 # three main CRSes used (there is one other CRS that was
