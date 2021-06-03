@@ -8,4 +8,5 @@ gpkg/*.gpkg*
 gpkg-standardized/*.gpkg*
 tif/*/*.tif
 nc/*.nc
+ims-daily-tif/cache
 *.qgs~
