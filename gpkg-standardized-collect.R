@@ -47,6 +47,11 @@ standardize_gpkg <- function(file, dest, pb) {
   layer$region <- str_extract(file, "[A-Z]{2}")
   layer$date <- as.Date(str_extract(file, "[0-9-]+"))
 
+  if (grepl("^ENGCRS", st_crs(layer)$wkt)) {
+    # one of cis_lcc_unknown_wkt, cis_lcc_nad27_wkt, or cis_lcc_wgs84_wkt
+    # probably it's the same as the file that's the week before or after it from the same region
+    st_crs(layer) <- cis_lcc_unknown_wkt
+  }
   # project to most recent CRS
   layer_wgs84 <- st_transform(layer, cis_lcc_wgs84_wkt)
 
